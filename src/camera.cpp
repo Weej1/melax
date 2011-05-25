@@ -22,10 +22,17 @@
 #include "camera.h"
 #include "console.h"
 
+LDECLARE(Camera,position)
+LDECLARE(Camera,orientation)
+LDECLARE(Camera,clipnear)
+LDECLARE(Camera,clipfar)
+LDECLARE(Camera,camdist)
+LDECLARE(Camera,viewangle)
 
-Camera::Camera(char *_name):Object(_name) 
+Camera::Camera(char *_name):Entity(_name) 
 {
 	assert(_name);
+	LEXPOSEOBJECT(Camera,"cammy");
 	EXPOSEMEMBER(target);
 	EXPOSEMEMBER(camdist);
 	target="player";
@@ -43,7 +50,7 @@ Camera::Camera(char *_name):Object(_name)
 Camera::~Camera(){
 }
 
-
+Camera camera; // the global camera!!
 
 
 
@@ -180,24 +187,28 @@ EXPORTVAR(camerahitcheck);
 extern float DeltaT;//fixme
 
 
+extern float3 &PlayerPosition();
+extern Quaternion &PlayerOrientation();
+extern float& PlayerHeadtilt();
+extern float& PlayerHeight();
 
 void camnav(Camera *camera)
 {
-	Object *ptarget = ObjectFind((String&)(camera->hash["target"]));
+	Entity *ptarget = ObjectFind((String&)(camera->target));
 	if(!ptarget) {
 		return;  
 	}
-	float &headtilt = ptarget->hash["headtilt"];
-	float &targheight = ptarget->hash["height"];
-	float &camdist  = camera->hash["camdist"];
+	float &headtilt = PlayerHeadtilt();
+	float &targheight = PlayerHeight();
+	float &camdist  = camera->camdist;
 	float radius = camera->clipnear;
 
 	camdist += movecam*movecamspeed*DeltaT;
 	camdist  = Min(15.0f,camdist);
 	camdist  = Max(0.0f,camdist);
 
-	camera->orientation = YawPitchRoll(Yaw((Quaternion)ptarget->hash["orientation"]),90+headtilt,0);
-	float3 cbase = ptarget->hash["position"]+float3(0,0,targheight-radius);
+	camera->orientation = YawPitchRoll(Yaw(PlayerOrientation()),90+headtilt,0);
+	float3 cbase = PlayerPosition()+float3(0,0,targheight-radius);
 	float3 ctarg = cbase + camera->orientation.zdir()*camdist;
 	if(camerahitcheck) {
 //		HitCheckSphere(radius,area_bsp,0,cbase,ctarg,&ctarg,float3(0,0,0));

@@ -13,6 +13,8 @@
 #include "console.h"
 #include "camera.h"
 
+#define PROFILE(N) 
+
 float   physics_deltaT=0.015f;
 EXPORTVAR(physics_deltaT);
 int physics_positioncorrection =0;
@@ -307,6 +309,7 @@ void createdrive(RigidBody *rb0,RigidBody *rb1,Quaternion target,float maxtorque
 //	Quaternion dq = r1*r0  ;  // quat that takes a direction in r0+target orientation into r1 orientation
 
 	Quaternion dq = rb1->orientation * Inverse(rb0->orientation*target) ;  // quat that takes a direction in r0+target orientation into r1 orientation
+	if(dq.w<0) dq=-dq;
 	float3 axis     = safenormalize(dq.xyz()); // dq.axis();
 	float3 binormal = Orth(axis);
 	float3 normal   = cross(axis,binormal);
@@ -393,7 +396,7 @@ RigidBody::RigidBody(WingMesh *_geometry,const Array<Face *> &_faces,const float
 	mass=1;
 	massinv=1.0f/mass;
 	radius=0;
-	damping = 0.0f;
+	//damping = 0.0f;
 	friction = physics_coloumb;
 
 	if(!_geometry) 
@@ -442,7 +445,7 @@ RigidBody::RigidBody(BSPNode *bsp,const Array<Face *> &_faces,const float3 &_pos
 	usesound = 0;
 	mass=1;
 	massinv=1.0f/mass;
-	damping = 0.0f;
+	//damping = 0.0f;
 	friction = physics_coloumb;
 
 	Array<WingMesh*> meshes;
@@ -573,8 +576,8 @@ char *energy(RigidBody *rb)
 	float3x3 T = Transpose(rb->orientation.getmatrix()) * rb->tensor * (rb->orientation.getmatrix());
 	float Er = 0.5f*dot((T*rb->spin),rb->spin);
 	float E  = Ep+Ek+Er;
-	sprintf(buf,"E=%5.4f  Ep=%5.4f  Ek=%5.4f  Er=%5.4f  ",E,Ep,Ek,Er);
-	sprintf(buf+strlen(buf),"rest=%d ",rb->rest);
+	sprintf_s(buf,512,"E=%5.4f  Ep=%5.4f  Ek=%5.4f  Er=%5.4f  ",E,Ep,Ek,Er);
+	sprintf_s(buf+strlen(buf),512-strlen(buf),"rest=%d ",rb->rest);
 	return buf;
 }
 
@@ -935,7 +938,45 @@ void FindShapeShapeContacts()  // Dynamic-Dynamic contacts
 
 float showspin=0.0f;
 EXPORTVAR(showspin);
+float aerotwirl=0.0f;
+EXPORTVAR(aerotwirl);
+float aeroflutter = 1.0f;
+EXPORTVAR(aeroflutter);
 
+float3 wind(0,0,0);
+EXPORTVAR(wind);
+float windtunnelheight = 3.0f;
+EXPORTVAR(windtunnelheight);
+float winddensity = 0.0f;  // also works as an 'enable' flag and a fudgefactor to avoid possibility of forward euler instability
+EXPORTVAR(winddensity);  // technically this is pseudo density of the medium (air, water, watever) 0==vacuum 
+
+void AddWindForces(RigidBody *rb,State s,float3 *force,float3 *torque)
+{
+	if(winddensity==0.0f) return;
+	float3 wind = ::wind*((windtunnelheight-rb->position.z)/windtunnelheight);  // inverted cone - full wind at bottom, none at top
+	struct wps 
+	{ float3 p; float3 n; wps(float3 _p,float3 _n):p(_p),n(normalize(_n)){}
+	} corners[4]=
+	{
+		wps(float3(-1,-1,0),float3(0,0,10)+float3(-1,-1,0)*aeroflutter+float3( 1,-1,0)*aerotwirl),
+		wps(float3( 1,-1,0),float3(0,0,10)+float3( 1,-1,0)*aeroflutter+float3( 1, 1,0)*aerotwirl),
+		wps(float3( 1, 1,0),float3(0,0,10)+float3( 1, 1,0)*aeroflutter+float3(-1, 1,0)*aerotwirl),
+		wps(float3(-1, 1,0),float3(0,0,10)+float3(-1, 1,0)*aeroflutter+float3(-1,-1,0)*aerotwirl),
+	};
+	for(int i=0;i<4;i++)
+	{
+		float3 r = rotate(rb->orientation,corners[i].p);
+		float3 v = rb->momentum * rb->massinv + cross(rb->spin,r); // abs velocity at corner
+		float3 n = rotate(rb->orientation,corners[i].n);  // corner normal in world
+		float3 w = wind - v;  // relative wind at point on object
+		float3 u = normalize(w);
+		float3 impulse = n*dot(w,n) * physics_deltaT * winddensity; 
+		//ApplyImpulse
+		rb->momentum = rb->momentum + impulse;
+		float3 drot = cross(r,impulse);   
+		rb->rotation = rb->rotation + drot ;
+	}
+}
 
 void rbinitvelocity(RigidBody *rb) 
 {
@@ -943,7 +984,7 @@ void rbinitvelocity(RigidBody *rb)
 	// forward euler update of the velocity and rotation/spin 
 	rb->old.position    = rb->position;
 	rb->old.orientation = rb->orientation;
-	float dampleftover = powf((1.0f-rb->damping),physics_deltaT);
+	float dampleftover = powf((1.0f-damping),physics_deltaT);
 	rb->momentum *= dampleftover; 
 	rb->rotation *= dampleftover;
 	State s = rb->state(); // (State) *rb;
@@ -952,6 +993,7 @@ void rbinitvelocity(RigidBody *rb)
 	force  = gravity*rb->mass;
 	torque = float3(0,0,0);
 	AddSpringForces(rb,s,&force,&torque);
+	AddWindForces(rb,s,&force,&torque);
 	rb->momentum += force*physics_deltaT; 
 	rb->rotation += torque*physics_deltaT;
 	rb->Iinv = Transpose(rb->orientation.getmatrix()) * rb->tensorinv * (rb->orientation.getmatrix());

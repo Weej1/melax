@@ -34,8 +34,6 @@
 // chosen to be C++ish and have the array elements constructors/destructors 
 // invoked as expected.
 //
-// another trick i do is to negate the count so you can return a list from a function
-// without incurring a copy.
 //
 
 #ifndef SM_ARRAY_H
@@ -59,7 +57,7 @@ template <class Type> class Array {
 	int			IndexOf(Type);
 	void		Remove(Type);
 	void		DelIndex(int i);
-	void		DelIndexWithLast(int i);
+	Type&		DelIndexWithLast(int i);
 	Type *		element;
 	int			count;
 	int			array_size;
@@ -217,14 +215,17 @@ template <class Type> void Array<Type>::DelIndex(int i)
 	}
 }
 
-template <class Type> void Array<Type>::DelIndexWithLast(int i)
+template <class Type> Type& Array<Type>::DelIndexWithLast(int i)
 {
 	assert(i<count);
 	count--;
 	if(i<count)
     {
+		Type r=element[i];
 		element[i] = element[count];
+		element[count]=r;
 	}
+	return element[count];
 }
 
 template <class Type> void Array<Type>::Remove(Type t)

@@ -28,7 +28,6 @@ EXPORTVAR(gloss); // used by deferred renderer right now.
 float fresnelpower=4.0f; // used by reflection shader.  need to pick which standard to use:  valve's artist friendly system or the techy scale,power,bias
 EXPORTVAR(fresnelpower);
 LPD3DXEFFECTPOOL g_effectpool=NULL;
-
 //------------------ textures ----------------------
 
 String texturepath("./ textures/ textures/");
@@ -213,6 +212,79 @@ String texmakenormalmap(String filename)
 }
 EXPORTFUNC(texmakenormalmap);
 
+
+int texgrabcount=0;
+int texgrab=0;
+EXPORTVAR(texgrab);
+
+String jacktexture(String name)
+{
+	if(!Textures.Exists(name))
+	{
+		return name + " no such texture";
+	}
+	LPDIRECT3DTEXTURE9 texture = Textures[name]->d3dtexture;
+	IDirect3DSurface9 *src;
+	texture->GetSurfaceLevel(0,&src) && VERIFY_RESULT;  // get level 0 surface so we know width and height
+	D3DSURFACE_DESC srcdesc;
+	src->GetDesc(&srcdesc) && VERIFY_RESULT;
+	D3DLOCKED_RECT srcdata;
+	src->LockRect(&srcdata , NULL , 0 );
+	static int hack;
+	hack = srcdesc.Format;
+	if(srcdesc.Format != D3DFMT_X8R8G8B8  && srcdesc.Format != D3DFMT_A8R8G8B8  )
+		return "not a texture format we understand";
+	for(unsigned int i=0;i< srcdesc.Width*srcdesc.Height ; i++ )
+	{
+		((unsigned char*)srcdata.pBits)[4* i + 0] = 0;    // b
+		((unsigned char*)srcdata.pBits)[4* i + 1] = 255;  // g
+		((unsigned char*)srcdata.pBits)[4* i + 2] = 0;    // r
+		((unsigned char*)srcdata.pBits)[4* i + 3] = 255;  // x
+	}
+	src->UnlockRect();
+	src->Release();
+	D3DXFilterTexture(texture,NULL,0,D3DX_DEFAULT);
+	return name + " jacked";
+}
+EXPORTFUNC(jacktexture);
+
+
+String jacktexture(String name,unsigned char *image,int w,int h)
+{
+	if(!Textures.Exists(name))
+	{
+		return name + " no such texture";
+	}
+	LPDIRECT3DTEXTURE9 texture = Textures[name]->d3dtexture;
+	IDirect3DSurface9 *src;
+	texture->GetSurfaceLevel(0,&src) && VERIFY_RESULT;  // get level 0 surface so we know width and height
+	D3DSURFACE_DESC srcdesc;
+	src->GetDesc(&srcdesc) && VERIFY_RESULT;
+	D3DLOCKED_RECT srcdata;
+	src->LockRect(&srcdata , NULL , 0 );
+	static int hack;
+	hack = srcdesc.Format;
+	if(srcdesc.Format != D3DFMT_X8R8G8B8  && srcdesc.Format != D3DFMT_A8R8G8B8  )
+		return "not a texture format we understand";
+	for(unsigned int i=0;i< srcdesc.Height && i<h ; i++ )
+	 for(unsigned int j=0;j< srcdesc.Width  && j<w ; j++ )
+	  for(unsigned int k=0;k<4;k++) 
+	{
+		((unsigned char*)srcdata.pBits)[(srcdesc.Width*4*i) + 4* j + k] = image[w*i*4+4*j+k];    // b
+	}
+	src->UnlockRect();
+	if(texgrabcount<texgrab)
+	{
+			D3DXSaveSurfaceToFile(String("texgrab_") + String(texgrabcount) + ".bmp" ,D3DXIFF_BMP,src,NULL,NULL);
+			texgrabcount++;
+	}
+	src->Release();
+	D3DXFilterTexture(texture,NULL,0,D3DX_DEFAULT);
+	return name + " jacked";
+}
+
+
+
 String texcompileheightmaps(String s)
 {
 	PROFILE(texcompileheightmaps);
@@ -239,6 +311,7 @@ EXPORTFUNC(texcompileheightmaps);
 Texture *diffusetex;
 Texture *normaltex;
 Texture *positiontex;
+Texture *consoletex;
 IDirect3DSurface9 *defaultrendertarget; 
 
 void rendertargetsrelease()
@@ -246,6 +319,7 @@ void rendertargetsrelease()
 	diffusetex->Release();
 	normaltex->Release();
 	positiontex->Release();
+	if(consoletex) consoletex->Release();
 }
 void createrendertargets()
 {
@@ -257,6 +331,8 @@ void createrendertargets()
 void inittargets()
 {
 	extern int Width,Height;
+	if(!consoletex)
+		consoletex  = new Texture("consoletex" );
 	if(!diffusetex)
 	{
 		diffusetex  = new Texture("diffusetex" );
@@ -295,7 +371,31 @@ void deferred_restoretargets()
 	defaultrendertarget=NULL;
 }
 
+float3 cmatcolor(0,0,0.25f);
+EXPORTVAR(cmatcolor);
+String consolemat(String s)
+{
+	if(!consoletex) consoletex  = new Texture("consoletex" );
+	if(!consoletex->d3dtexture) consoletex->CreateRenderTarget(D3DFMT_A8R8G8B8);
+	assert(consoletex->isrendertarget);
 
+	g_pd3dDevice->GetRenderTarget(0,&defaultrendertarget); // so we can restore it later 
+	SetRenderTarget(0,consoletex);
+	g_pd3dDevice->Clear( 0, NULL, D3DCLEAR_TARGET|D3DCLEAR_ZBUFFER|D3DCLEAR_STENCIL,
+						 D3DCOLOR_COLORVALUE(cmatcolor.x,cmatcolor.y,cmatcolor.z,1.0f), 1.0f, 0L );
+
+	g_pd3dDevice->BeginScene();// Begin the scene
+	// ok render stuff here!!!
+	extern void DrawText(float x,float y,const char *s);
+	DrawText(0,0,s);
+    g_pd3dDevice->EndScene(); 	// End the scene
+	assert(defaultrendertarget);
+	g_pd3dDevice->SetRenderTarget(0,defaultrendertarget);  // restore regular rendertarget
+	defaultrendertarget->Release();
+	defaultrendertarget=NULL;
+	return "ok";
+}
+EXPORTFUNC(consolemat);
 
 
 //
@@ -351,7 +451,7 @@ void EffectParameter<T>::Load()
 	effect->SetValue(handle,var,sizeof(*var)) &&VERIFY_RESULT;
 }
 
-class Material : public Object
+class Material : public Entity
 {
   public:
 	String name;
@@ -364,6 +464,7 @@ class Material : public Object
 	Array<EffectParameter<LPDIRECT3DCUBETEXTURE9> > cubetextures;
 	Array<EffectParameter<float4x4 *> > matrices;
 	Array<EffectParameter<float3 *> > vectors;
+	Array<EffectParameter<float4 *> > vec4s;
 	Array<EffectParameter<float  *> > floats;
 	int special;
 	Material(String _name,int _special);
@@ -466,20 +567,30 @@ EXPORTFUNC(materialfind);
 
 
 
-Material::Material(String _name,int _special):Object(String("material_")+_name),name(ToLower(_name)),special(_special)
+LDECLARE(Material,technique);
+LDECLARE(Material,emissive);
+LDECLARE(Material,gloss);
+LDECLARE(Material,reflectivity);
+LDECLARE(Material,fresnel);
+LDECLARE(Material,diffusecoef);
+LDECLARE(Material,draw);
+LDECLARE(Material,lightpasses);
+
+Material::Material(String _name,int _special):Entity(String("material_")+_name),name(ToLower(_name)),special(_special)
 {
 	gloss = 0.5f;  // default value.
 	reflectivity = 0.1f; 
 	fresnel = float3(0.1f,0.0f,4.0f); // scale bias power
 	diffusecoef = 1.0f;
-	EXPOSEMEMBER(technique);
-	EXPOSEMEMBER(emissive);
-	EXPOSEMEMBER(gloss);
-	EXPOSEMEMBER(reflectivity);
-	EXPOSEMEMBER(fresnel);
-	EXPOSEMEMBER(diffusecoef);
-	EXPOSEMEMBER(draw);
-	EXPOSEMEMBER(lightpasses);
+	LEXPOSEOBJECT(Material,this->id);
+	//EXPOSEMEMBER(technique);
+	//EXPOSEMEMBER(emissive);
+	//EXPOSEMEMBER(gloss);
+	//EXPOSEMEMBER(reflectivity);
+	//EXPOSEMEMBER(fresnel);
+	//EXPOSEMEMBER(diffusecoef);
+	//EXPOSEMEMBER(draw);
+	//EXPOSEMEMBER(lightpasses);
 	draw= 1;	
 	lightpasses =1;
 	technique = "t0";
@@ -516,6 +627,9 @@ int MaterialNextRegular(int i)
 	return i;
 }
 
+//String effectpath("effects");
+String effectpath("effects"); 
+EXPORTVAR(effectpath);
 
 Material *MakeMaterial(xmlNode *elem)
 {
@@ -527,24 +641,32 @@ Material *MakeMaterial(xmlNode *elem)
 	if(mn=="") mn = String(Materials.count);
 	
 	Material *m = new Material(mn,(elem->Child("special"))?1:0);
-	String en("effects/default.fx");
+	String en = effectpath + "/" + "default.fx";
 	assert(!elem->hasAttribute("effect"));  // old way: en = String("effects/") + elem->attributes["effect"];
 	if(elem->Child("effect"))
 	{
-		en = String("effects/") + elem->Child("effect")->body;
+		en = effectpath + "/" + elem->Child("effect")->body;
 	}
 	LPD3DXEFFECT &effect = Effects[en];
 	if(!effect)
 	{
 		LPD3DXBUFFER error;
 		assert(effect==NULL);
-		D3DXCreateEffectFromFile(g_pd3dDevice,en,NULL,NULL,0,g_effectpool,&effect,&error)  && VERIFY_RESULT;
+		//HRESULT hr = ; // && VERIFY_RESULT
+		if(D3DXCreateEffectFromFile(g_pd3dDevice,en+"o",NULL,NULL,0,g_effectpool,&effect,&error) && 
+		   D3DXCreateEffectFromFile(g_pd3dDevice,en    ,NULL,NULL,0,g_effectpool,&effect,&error)) 
+		{
+			char * buf= (char*)error->GetBufferPointer();
+			int i=3;
+			i++;
+		}
 		assert(effect);
 	}
 	m->effect = effect;
 	assert(m->effect);
 	assert(m->effect == Effects[en]);
-	
+	if(elem->hasAttribute("lightingpasses"))
+		m->lightpasses = elem->attribute("lightingpasses").Asint() ; 
 
 	D3DXEFFECT_DESC effect_desc;
 	effect->GetDesc(&effect_desc) && VERIFY_RESULT;
@@ -554,6 +676,8 @@ Material *MakeMaterial(xmlNode *elem)
 		D3DXPARAMETER_DESC pdesc;
 		ph=effect->GetParameter(NULL,i);  // useful to put breakpoint here
 		effect->GetParameterDesc(ph,&pdesc) && VERIFY_RESULT;
+		int hasbody = (elem->Child(pdesc.Name))?1:0;
+		String body = (elem->Child(pdesc.Name))?elem->Child(pdesc.Name)->body : "";  
 		if(pdesc.Type == D3DXPT_TEXTURE)
 		{
 			Texture *t;
@@ -583,26 +707,54 @@ Material *MakeMaterial(xmlNode *elem)
 		}
 		if(pdesc.Class==D3DXPC_MATRIX_ROWS && pdesc.Type==D3DXPT_FLOAT)
 		{
-			Reference r = GetVar(pdesc.Name);
-			if(r.data) m->matrices.Add(EffectParameter<float4x4*>(effect,ph, (float4x4*)r.data,pdesc.Name));
+			String cs;
+			void *data = deref(0,"",pdesc.Name,cs);
+			assert(data);
+			//Reference r = GetVar(pdesc.Name);
+			//assert(r.data==data);
+			assert(cs=="float4x4");
+			if(data) m->matrices.Add(EffectParameter<float4x4*>(effect,ph, (float4x4*)data,pdesc.Name));
 		}
 		if(pdesc.Class==D3DXPC_VECTOR && pdesc.Type==D3DXPT_FLOAT)
 		{
-			Reference r = m->hash.Exists(pdesc.Name) ? m->hash[pdesc.Name] : GetVar(pdesc.Name);
-			if(r.data) m->vectors.Add(EffectParameter<float3*>(effect,ph, (float3*)r.data,pdesc.Name));
+			String cs;
+			void *data = deref(m,"Material",pdesc.Name,cs);
+			if(!data) data = deref(0,"",pdesc.Name,cs);
+			//Reference r = m->hash.Exists(pdesc.Name) ? m->hash[pdesc.Name] : GetVar(pdesc.Name);
+			//assert(data==r.data);
+			if(data && cs=="float3" )
+			{
+				m->vectors.Add(EffectParameter<float3*>(effect,ph, (float3*)data,pdesc.Name));
+				if(hasbody)
+					StringIter(body) >> *((float3*)data) ;
+			}
+			if(data && cs=="float4" )
+			{
+				m->vec4s.Add(EffectParameter<float4*>(effect,ph, (float4*)data,pdesc.Name));
+			}
 		}
 		if(pdesc.Class==D3DXPC_SCALAR && pdesc.Type==D3DXPT_FLOAT)
 		{
-			Reference r = m->hash.Exists(pdesc.Name) ? m->hash[pdesc.Name] : GetVar(pdesc.Name);
-			if(r.data) m->floats.Add(EffectParameter<float*>(effect,ph, (float*)r.data,pdesc.Name));
+			String cs;
+			void *data = deref(m,"Material",pdesc.Name,cs);
+			if(!data) data = deref(0,"",pdesc.Name,cs);
+			//Reference r = m->hash.Exists(pdesc.Name) ? m->hash[pdesc.Name] : GetVar(pdesc.Name);
+			//assert(data==r.data);
+			assert(!data || cs=="float");
+			if(data) 
+			{
+				m->floats.Add(EffectParameter<float*>(effect,ph, (float*)data,pdesc.Name));
+				if(hasbody)
+					StringIter(body) >> *((float*)data) ;
+			}
 		}
 	}
 	for(i=0;i<elem->children.count;i++)
 	{
 		xmlNode *child = elem->children[i];
-		if(ObjectImportMember(m,child)) continue;
-		D3DXHANDLE h= effect->GetParameterByName(NULL,child->attribute("param"));
-		if(!h) continue;
+//		if(ObjectImportMember(m,child)) continue;
+//		D3DXHANDLE h= effect->GetParameterByName(NULL,child->attribute("param"));
+//		if(!h) continue;
 	}
 	return m;
 }
@@ -642,7 +794,18 @@ Material *LoadMatFile(String fname)
 	return MakeMaterial(m);
 }
 
-void LoadMaterials()
+void LoadMaterial(char *fname)
+{
+	if(!g_effectpool)
+	{
+		D3DXCreateEffectPool(&g_effectpool) && VERIFY_RESULT;
+		inittargets(); // initial  rendertargets for deferred lighting, this lets materials link up with these textures
+	}
+	assert(g_effectpool);
+	LoadMatFile(fname);
+}
+
+void LoadMaterials(void*)
 {
 	// Automatically generate materials based on the contents of the ./textures/ directory
 	// First create any material based on a .mat/xml material file.
@@ -652,17 +815,21 @@ void LoadMaterials()
 	PROFILE(loadmaterials);
 	// prefer to put this into startup cfg:  
 	texcompileheightmaps("");
-	assert(!g_effectpool);
-	D3DXCreateEffectPool(&g_effectpool) && VERIFY_RESULT;
+	if(!g_effectpool)
+	{
+		D3DXCreateEffectPool(&g_effectpool) && VERIFY_RESULT;
+		inittargets(); // initial  rendertargets for deferred lighting, this lets materials link up with these textures
+
+	}
 	assert(g_effectpool);
-	inittargets(); // initial  rendertargets for deferred lighting, this lets materials link up with these textures
 	int i;
-	assert(Materials.count==0);
-	LoadMatFile("default.mat");
-	assert(Materials.count);
+	//assert(Materials.count==0);
+	//LoadMatFile("default.mat");
+	//assert(Materials.count);
 	Array<String> files;
+	files.Add("default.mat");  // must exist
 	filesearch("./textures/*.mat",files);
-	filesearch("./textures/*.xml",files);
+	//filesearch("./textures/*.xml",files);
 	for(i=0;i<files.count;i++)
 	{
 		if(files[i]=="default.mat") continue;
@@ -691,7 +858,7 @@ void LoadMaterials()
 			xmlNode *b = new xmlNode("normalmap",&e);
 			b->body = bmap;
 			xmlNode *fx = new xmlNode("effect",&e);
-			fx->body = "relief_mapping.fx";
+			fx->body = "parallax.fx";
 		}
 		MakeMaterial(&e);
 	}
@@ -725,6 +892,9 @@ LPD3DXEFFECT MaterialUpload(Material *mat)
 	for(i=0;i<mat->vectors.count;i++) {
 		mat->vectors[i].Load();
 	}
+	for(i=0;i<mat->vec4s.count;i++) {
+		mat->vec4s[i].Load();
+	}
 	for(i=0;i<mat->floats.count;i++) {
 		mat->floats[i].Load();
 	}
@@ -739,7 +909,7 @@ LPD3DXEFFECT MaterialSetup(Material *mat)
 	if(!mat->draw) return NULL;  // this material set to not be drawn
 	if(lightingpasses && !mat->lightpasses) return NULL;  // this material set to not be drawn
 	MaterialUpload(mat);
-	if(hack_usealpha && D3D_OK==mat->effect->SetTechnique("alpha")) 
+	if(hack_usealpha && D3D_OK==mat->effect->SetTechnique("alphatechnique")) 
 	{
 		return mat->effect;
 	}

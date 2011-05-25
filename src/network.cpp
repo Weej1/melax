@@ -39,7 +39,7 @@ EXPORTVAR(verbose);
 int sockstuff =0;
 int network=0;
 SOCKET listen_sock=INVALID_SOCKET;
-char *http_trailer="HTTP/1.0";
+char *http_trailer="HTTP/1.1";
 Array<SOCKET> Players;
 
 
@@ -159,7 +159,7 @@ printf("Got a command:\n%s\n-----------\n",command);
 		commandend-=len;
 	}
 
-	char exbuffer[512];
+	char exbuffer[1024];
 	int k=0;
 	while(command<commandend) {
 		if(*command == '=') {
@@ -176,12 +176,12 @@ printf("Got a command:\n%s\n-----------\n",command);
 		}
 		else if(*command == '%'){
 			char hx[5];
-			sprintf(hx,"0x__");
+			sprintf_s(hx,sizeof(hx),"0x__");
 			hx[2]=command[1];
 			hx[3]=command[2];
 			hx[4]='\0';
 			int n;
-			sscanf(hx,"%x",&n);
+			sscanf_s(hx,"%x",&n);
 			exbuffer[k++] = (char) n;
 			command+=3;
 		}
@@ -191,7 +191,7 @@ printf("Got a command:\n%s\n-----------\n",command);
 		}
 	}
 	exbuffer[(k++)-1] = '\0';
-	assert(k<=512);
+	assert(k<=1024);
 	//printf("Got from network:  %s\n",exbuffer);
 	if(s!=INVALID_SOCKET) {
 		int rc=send(s,exbuffer,strlen(exbuffer),0);
@@ -199,37 +199,50 @@ printf("Got a command:\n%s\n-----------\n",command);
 			perror("send:  ");
 		}
 		char outbuf[256];
-		sprintf(outbuf,"\n</pre></code>Response:<code><pre>\n");
+		sprintf_s(outbuf,sizeof(outbuf),"\n</pre></code>Response:<code><pre>\n");
 		send(s,outbuf,strlen(outbuf),0);
 	}
-	int se=dup(2);
-	int so=dup(1);
-	dup2(s,1); // send stdout to socket
-	dup2(s,2); // send stderr to socket
-	char *rs=FuncInterp(exbuffer);
-	dup2(so,1);
-	dup2(se,2);
-	close(so);
-	close(se);
-	PostString(exbuffer,0,1,5);
-	PostString(rs,0,2,5);
-	if(s!=INVALID_SOCKET) {
-		send(s,rs,strlen(rs),0);
+	//int se=dup(2);
+	//int so=dup(1);
+	//dup2(s,1); // send stdout to socket
+	//dup2(s,2); // send stderr to socket
+	String script = exbuffer;
+	int comcount=0;
+	while(script.Length())
+	{
+		String c = PopFirstWord(script,"\n\r");
+		if(c.Length()==0) continue;
+		String rs=FuncInterp(c);
+	//dup2(so,1);
+	//dup2(se,2);
+	//close(so);
+	//close(se);
+		PostString(c,0,1+comcount*2,5);
+		PostString(rs,0,2+comcount*2,5);
+		rs += "\n\n";
+		if(s!=INVALID_SOCKET) 
+		{
+			c+="\n  ";
+			send(s,c,c.Length(),0);
+			send(s,rs,strlen(rs),0);
+		}
+		comcount++;
 	}
 }
 
 void NetworkSend(char *buf) {
 	char shit[1024];
 	memset(shit,'\0',1024);
-	strcpy(shit,buf);
+	strcpy_s(shit,1024,buf);
 	//int num_bytes = strlen(buf)+1;
 	int num_bytes = 1024;
 	// broadcast command
-	int i;
+	//int i;
 	char ds[1024]; //debugstring
 	ds[0]='\0';
 	//sprintf(ds+strlen(ds),"Write: (%d bytes)  ",);
-	sprintf(ds+strlen(ds),"Write: (%d bytes)  ",num_bytes);
+	sprintf_s<1024>(ds,"Write: (%d bytes)  ",num_bytes);
+/*	
 	for(i=0;i<Players.count;i++) {
 		sprintf(ds+strlen(ds),"  player %d: ",i);
 		if(PollWrite(Players[i])) {
@@ -247,9 +260,12 @@ void NetworkSend(char *buf) {
 			sprintf(ds+strlen(ds),"fail   ");
 		}
 	}
+*/
 	PostString(ds,0,3,0);
 }
-void GetOtherPlayerInfo() {
+void GetOtherPlayerInfo() 
+{
+/*
 	int junk=0;
 	int i;
 	char ds[1024]; //debugstring
@@ -284,23 +300,86 @@ void GetOtherPlayerInfo() {
 	}
 	PostString(ds,0,4,0);
 	if(junk)	PostString(ds,0,5,5);
+*/
 }
 
 void DoStdinStuff() {
 	if(!PollRead(0)) return;
 	char buf[1024];
-        char *rs=NULL;
+	String rs;
 	//String com;
 	while(PollRead(0)) {
 		buf[0]='\0';
-		gets(buf+strlen(buf));
+		gets_s(buf+strlen(buf),sizeof(buf)-strlen(buf));
 		//com+=buf;
 		//com+="\n";
 	}
 	PostString(buf,0,3,5);  
 	PostString(rs=FuncInterp(buf),0,4,5);
-	printf("%s\n",rs);
+	printf("%s\n",(const char *)rs);
 }
+
+String html;
+
+String objectlist(String s)
+{
+	html="";
+	html += "\n<UL>\n";
+	for(int i=0;i<Objects.count;i++)
+	{
+		if(s.Length() && strncmp(s,Objects[i]->id,s.Length())!=0)
+			continue;
+		html  << "<LI> " << Objects[i]->id << "\n";
+
+//		for(int j=0;j<Objects[i]->hash.slots_count ; j++)
+//		{
+//			if(!Objects[i]->hash.slots[j].used) 
+//				continue;
+//			html  << "<LI> " << Objects[i]->id << "." << Objects[i]->hash.slots[j].key << " = " << Objects[i]->hash.slots[j].value.Get() << "\n";
+//		}
+	}
+	html << "\n</UL>\n";
+	return "html dump of all internal object variables";
+}
+EXPORTFUNC(objectlist);
+
+String htmlobjects(String s)
+{
+	html="";
+	html += "\n<UL>\n";
+	for(int i=0;i<Objects.count;i++)
+	{
+			html  << "<LI> <a target=objectview href=\"http://localhost/htmltweaker " << Objects[i]->id << "\"> " << Objects[i]->id << " </a> </LI>\n" ;
+	}
+	html << "\n</UL>\n";
+	html << "<hr>\n";
+	html << "<iframe height=\"30%\" id=objectview width=\"100%\" />\n" ;
+	return "html list of objects";
+}
+EXPORTFUNC(htmlobjects);
+
+String htmltweaker(String s)
+{
+	html="";
+	html += "\n<UL>\n";
+	for(int i=0;i<Objects.count;i++)
+	{
+		if(s.Length() && strncmp(s,Objects[i]->id,s.Length())!=0)
+			continue;
+//		for(int j=0;j<Objects[i]->hash.slots_count ; j++)
+//		{
+//			if(!Objects[i]->hash.slots[j].used) 
+//				continue;
+//			html  << "<LI> <form method=get action=\"http://localhost/script\"> <textarea name=text rows=1 cols=60> " 
+//				  << Objects[i]->id << "." << Objects[i]->hash.slots[j].key << " = " << Objects[i]->hash.slots[j].value.Get() 
+//				  << "</textarea><button type=SUBMIT>SUBMIT</button></form>\n";
+//		}
+	}
+	html << "\n</UL>\n";
+	return "html forms generated for all object console variables";
+}
+EXPORTFUNC(htmltweaker);
+
 void DoNetworkStuff(){
 	DoStdinStuff();
 	// check for guy connecting and deal with it if so
@@ -312,6 +391,7 @@ void DoNetworkStuff(){
 	if(!PollRead(listen_sock)) { return;}
 	SOCKET s=Accept();
 	if(s==INVALID_SOCKET) {return;}
+	if(!PollRead(s)) { closesocket(s);return;}
 	char buf[2048];
 	int rc=recv(s,buf,8,  0);
 	buf[rc]='\0';
@@ -350,7 +430,15 @@ void DoNetworkStuff(){
 	
 	DoConsoleCommand(buf,s);
 
-	sprintf(outbuf,"\n</pre></code>\n\n click <b>BACK</b> in your web browser.\n<hr></body></html>\n");
+	sprintf(outbuf,"\n</pre></code>\n\n <hr>\n");
+	send(s,outbuf,strlen(outbuf),0);
+
+
+	if(html.Length())
+		send(s,(const char*)html,html.Length(),0);
+	html="";
+	
+	sprintf(outbuf,"\n</body></html>\n");
 	send(s,outbuf,strlen(outbuf),0);
 
 	closesocket(s);
@@ -472,7 +560,7 @@ void URL(char *url)
   //get optional port
   if (machine[i]==':')
   {
-	  sscanf(machine+i+1,"%d",&port);
+	  sscanf_s(machine+i+1,"%d",&port);
   }
   machine[i]='\0';
 
@@ -505,7 +593,7 @@ void JoinGame(char *parameterstring)
   SOCKET sock;
 
   machine[0]='\0';
-  sscanf(parameterstring,"%s",machine);
+  sscanf_s(parameterstring,"%s",machine);
 
   sock = ConnectTCP(machine,port);
   if(sock == INVALID_SOCKET) {

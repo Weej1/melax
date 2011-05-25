@@ -13,6 +13,7 @@ Manipulator* ManipulatorHit(const float3 &v0, float3 v1, float3 *impact);
 Manipulator* ManipulatorDrag(const float3 &v0, float3 v1, float3 *impact);
 int          ManipulatorUserInput(int);
 int          ManipulatorKeyPress(int k);
+int          ManipulatorKeysGrab();
 int          ManipulatorWheel(int w);
 void         ManipulatorRender();
 

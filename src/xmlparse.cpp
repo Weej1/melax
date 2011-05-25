@@ -170,7 +170,7 @@ void XMLSaveFile(xmlNode *elem,FILE *fp)
 	int singleline = (elem->children.count==0 && strlen(elem->body)<60); 
 	int i;
 	indent(fp,depth);
-	fprintf(fp,"<%s",elem->tag);
+	fprintf(fp,"<%s",(const char*)elem->tag);
 	for(i=0;i<elem->attributes.count;i++) {
 		fprintf(fp," %s=\"%s\"",(const char*)elem->attributes[i]->key,(const char*)elem->attributes[i]->value);
 	}
@@ -185,7 +185,7 @@ void XMLSaveFile(xmlNode *elem,FILE *fp)
 	}
 	depth-=2;
 	if(!singleline) indent(fp,depth);
-	fprintf(fp,"</%s>\n",elem->tag);
+	fprintf(fp,"</%s>\n",(const char*)elem->tag);
 }
 void XMLSaveFile(xmlNode *elem,const char *filename)
 {

@@ -205,6 +205,7 @@ int4 FindSimplex(float3 *verts,int verts_count)
 
 int calchull(float3 *verts,int verts_count, int3 *&tris_out, int &tris_count,int vlimit) 
 {
+	int i;
 	if(verts_count <4) return 0;
 	if(vlimit==0) vlimit=1000000000;
 	int j;

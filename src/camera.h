@@ -12,7 +12,7 @@
 #include "object.h"
 #include "bsp.h"
 
-class Camera : public Object
+class Camera : public Entity
 {
   public:
 						Camera(char *_name="camera");

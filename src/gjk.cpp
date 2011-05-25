@@ -1,6 +1,4 @@
-//
-// basic implementation of gjk by s melax
-//
+
 
 #include <assert.h>
 
@@ -524,7 +522,7 @@ int Separated(const Collidable *A,const Collidable *B,Contact &hitinfo,int findc
 			Expandable expd(next);
 			expd.expandit(last,A,B);
 			separationplane.normal() = NormalOf(last.W[0].p,last.W[1].p,last.W[2].p);
-			if(dot(separationplane.normal(),last.v)>0) separationplane.normal() *=-1;
+			if(dot(separationplane.normal(),last.v)>0) separationplane.normal() *=-1.0f;
 			hitinfo.normal = separationplane.normal();
 			hitinfo.dist   = separationplane.dist();
 			float3 b = BaryCentric(last.W[0].p,last.W[1].p,last.W[2].p,last.v);

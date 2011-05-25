@@ -21,10 +21,11 @@ float3 manipv0,manipv1;
 float3 manipv0_start,manipv1_start;
 static int dragging=0;
 
-Manipulator::Manipulator():positiona(0,0,0)
+Manipulator::Manipulator():positiona(0,0,0),orientationa(0,0,0,1.0f)
 {
 	Manipulators.Add(this);
 	drawit=1;
+	mode=0;
 }
 
 Manipulator::~Manipulator()
@@ -38,7 +39,7 @@ int Manipulator::HitCheck(const float3 &v0, float3 v1,float3 *impact)
 	return BoxIntersect(v0,v1,Bmin(),Bmax(),impact);
 }
 
-Manipulator::InDrag()
+int Manipulator::InDrag()
 {
 	return (currentmanipulator==this && dragging);
 }
@@ -82,7 +83,16 @@ int Manipulator::DragEnd(const float3 &v0, const float3 &v1)
 int Manipulator::Drag(const float3 &v0, float3 v1,float3 *impact)
 {
 	v1 = v0+ (v1-v0) * magnitude(manipv1-manipv0) / magnitude(v1-v0);
-	Position() += v1-manipv1;
+	extern int shiftdown;
+	extern int ctrldown;
+	if(ctrldown)
+	{
+		ScaleIt(vabs(rotate(Inverse(Orientation()),v1-Center()))-vabs(rotate(Inverse(Orientation()),manipv1-Center())));
+	}
+	else if(!shiftdown)
+		Position() += v1-manipv1;
+	else
+		Orientation() = VirtualTrackBall(v0,Center(),manipv1-v0,v1-v0) * Orientation();
 	*impact=v1;
 	PositionUpdated();
 	return 1;
@@ -90,6 +100,11 @@ int Manipulator::Drag(const float3 &v0, float3 v1,float3 *impact)
 
 int Manipulator::Wheel(int w)
 {
+	if(!InDrag())
+	{
+		mode = (w>0);
+		return 1;
+	}
 	float3 manipv1old = manipv1;
 	// manipv1 = manipv0 + (manipv1-manipv0) * powf(a.Asfloat(),DeltaT); // from former pushpull console command
 	manipv1 = manipv0 + (manipv1-manipv0) * powf(1.1f,(float)w);
@@ -127,15 +142,19 @@ Manipulator* ManipulatorDrag(const float3 &v0, float3 v1,float3 *impact)
 
 int ManipulatorKeyPress(int k)
 {
-	if(!currentmanipulator) return NULL;
+	if(!currentmanipulator) return 0;
 	return currentmanipulator->KeyPress(k);
 }
 int ManipulatorWheel(int w)
 {
-	if(!currentmanipulator) return NULL;
+	if(!currentmanipulator) return 0;
 	return currentmanipulator->Wheel(w);
 }
-
+int ManipulatorKeysGrab()
+{
+	if(!currentmanipulator) return 0;
+	return currentmanipulator->KeysGrab();
+}
 
 void Manipulator::Render()
 {
@@ -192,7 +211,19 @@ public:
 	TexSlideManipulator(Face *_face):PlanarManipulator(*_face),face(_face){Position()=FaceCenter(face);}
 	int Drag(const float3 &v0,float3 v1,float3* impact){PlanarManipulator::Drag(v0,v1,&v1);*impact=v1;face->ot.x-=dot(v1-manipv1,face->gu);face->ot.y-=dot(v1-manipv1,face->gv);return 1;}
 };
-char *testo(char*)
+
+
+String tooltip(String)
+{
+	if(!currentmanipulator) return "";
+	return currentmanipulator->tooltip();
+}
+EXPORTFUNC(tooltip);
+
+
+
+
+char *testo(const char*)
 {
 	extern BSPNode *area_bsp;
 	Array<BSPNode *>stack;
