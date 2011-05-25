@@ -54,124 +54,12 @@ int     argmax(const float a[],int n)
 
 
 
-float3 operator+( const float3& a, const float3& b ) 
-{
-	return float3(a.x+b.x, a.y+b.y, a.z+b.z); 
-}
-
-
-float3 operator-( const float3& a, const float3& b )
-{
-	return float3( a.x-b.x, a.y-b.y, a.z-b.z ); 
-}
-
-
-float3 operator-( const float3& v )                     
-{
-	return float3( -v.x, -v.y, -v.z ); 
-}
-
-
-float3 operator*( const float3& v, float s )      
-{
-	return float3( v.x*s, v.y*s, v.z*s ); 
-}
-
-
-float3 operator*( float s, const float3& v )      
-{
-	return float3( v.x*s, v.y*s, v.z*s ); 
-}
-
-
-float3 operator/( const float3& v, float s )      
-{ 
-	return v*(1.0f/s); 
-}
-
-float  dot( const float3& a, const float3& b )    
-{
-	return a.x*b.x + a.y*b.y + a.z*b.z; 
-}
-
-float3 cmul( const float3 &v1, const float3 &v2) 
-{ 
-	return float3(v1.x*v2.x, v1.y*v2.y, v1.z*v2.z); 
-}
-
-
-float3 cross( const float3& a, const float3& b )
-{
-    return float3( a.y*b.z - a.z*b.y,
-                   a.z*b.x - a.x*b.z,
-                   a.x*b.y - a.y*b.x );
-}
-
-
-
-
-float3& operator+=( float3& a , const float3& b )
-{
-    a.x += b.x;
-    a.y += b.y;
-    a.z += b.z;
-    return a;
-}
-
-
-float3& operator-=( float3& a , const float3& b )
-{
-    a.x -= b.x;
-    a.y -= b.y;
-    a.z -= b.z;
-    return a;
-}
-
-
-float3& operator*=(float3& v , float s )
-{
-    v.x *= s;
-    v.y *= s;
-    v.z *= s;
-    return v;
-}
-
-
-float3& operator/=(float3& v , float s )
-{
-    float sinv = 1.0f / s;
-    v.x *= sinv;
-    v.y *= sinv;
-    v.z *= sinv;
-    return v;
-}
-
 float3 vabs(const float3 &v)
 {
 	return float3(fabsf(v.x),fabsf(v.y),fabsf(v.z));
 }
 
 
-float magnitude( const float3& v )
-{
-    return sqrtf(squared(v.x) + squared( v.y)+ squared(v.z));
-}
-
-
-
-float3 normalize( const float3 &v )
-{
-	// this routine, normalize, is ok, provided magnitude works!!
-    float d=magnitude(v);
-    if (d==0) 
-    {
-		printf("Cant normalize ZERO vector\n");
-		assert(0);// yes this could go here
-		d=0.1f;
-	}
-	d = 1/d;
-	return float3(v.x*d,v.y*d,v.z*d);
-}
 
 float3 safenormalize(const float3 &v)
 {
@@ -211,6 +99,16 @@ void BoxLimits(const float3 *verts,int verts_count, float3 &bmin,float3 &bmax)
 		bmax = VectorMax(bmax,verts[i]);
 	}
 }	
+void BoxLimits(const float4 *verts,int verts_count, float3 &bmin,float3 &bmax)
+{
+	bmin=float3( FLT_MAX, FLT_MAX, FLT_MAX);
+	bmax=float3(-FLT_MAX,-FLT_MAX,-FLT_MAX);
+	for(int i=0;i<verts_count;i++)
+	{
+		bmin = VectorMin(bmin,verts[i].xyz());
+		bmax = VectorMax(bmax,verts[i].xyz());
+	}
+}
 int overlap(const float3 &bmina,const float3 &bmaxa,const float3 &bminb,const float3 &bmaxb)
 {
 	for(int j=0;j<3;j++)
@@ -335,11 +233,6 @@ float4   operator*( const float4&   v, const float4x4& m )
 	return v.x*m.x + v.y*m.y + v.z*m.z + v.w*m.w; // yes this actually works
 }
 
-int operator==( const float4 &a, const float4 &b ) 
-{
-	return (a.x==b.x && a.y==b.y && a.z==b.z && a.w==b.w); 
-}
-
 
 //  Dont implement m*v for now, since that might confuse us
 //  All our transforms are based on multiplying the "row" vector on the left
@@ -347,38 +240,6 @@ int operator==( const float4 &a, const float4 &b )
 //{
 //	return float4(dot(v,m.x),dot(v,m.y),dot(v,m.z),dot(v,m.w));
 //}
-
-
-
-float4 cmul( const float4 &a, const float4 &b) 
-{
-	return float4(a.x*b.x,a.y*b.y,a.z*b.z,a.w*b.w);
-}
-
-
-float4 operator*( const float4 &v, float s) 
-{
-	return float4(v.x*s,v.y*s,v.z*s,v.w*s);
-}
-
-
-float4 operator*( float s, const float4 &v) 
-{
-	return float4(v.x*s,v.y*s,v.z*s,v.w*s);
-}
-
-
-float4 operator+( const float4 &a, const float4 &b) 
-{
-	return float4(a.x+b.x,a.y+b.y,a.z+b.z,a.w+b.w);
-}
-
-
-
-float4 operator-( const float4 &a, const float4 &b) 
-{
-	return float4(a.x-b.x,a.y-b.y,a.z-b.z,a.w-b.w);
-}
 
 
 float4 Homogenize(const float3 &v3,const float &w)
@@ -550,36 +411,7 @@ float4x4 Inverse(const float4x4 &m)
 
 
 //--------- Quaternion --------------
-  
-Quaternion operator*( const Quaternion& a, const Quaternion& b )
-{
-	Quaternion c;
-	c.w = a.w*b.w - a.x*b.x - a.y*b.y - a.z*b.z; 
-	c.x = a.w*b.x + a.x*b.w + a.y*b.z - a.z*b.y; 
-	c.y = a.w*b.y - a.x*b.z + a.y*b.w + a.z*b.x; 
-	c.z = a.w*b.z + a.x*b.y - a.y*b.x + a.z*b.w; 
-	return c;
-}
-
-
-Quaternion operator*( const Quaternion& a, float b )
-{
-	return Quaternion(a.x*b, a.y*b, a.z*b ,a.w*b);
-}
-
-Quaternion  Inverse(const Quaternion &q)
-{
-	return Quaternion(-q.x,-q.y,-q.z,q.w);
-}
-
-Quaternion& operator*=( Quaternion& q, const float s )
-{
-    q.x *= s;
-    q.y *= s;
-    q.z *= s;
-    q.w *= s;
-    return q;
-}
+   
 void Quaternion::Normalize()
 {
 	float m = sqrtf(squared(w)+squared(x)+squared(y)+squared(z));
@@ -611,52 +443,6 @@ float3 rotate( const Quaternion& q, const float3& v )
 		(2*(qxqz-qyqw))*v.x + (2*(qyqz+qxqw))*v.y + (1-2*(qx2+qy2))*v.z  );
 }
 
-float3 operator*( const Quaternion& q , const float3& v )
-{
-	// The following is equivalent to:   
-	//return (q.getmatrix() * v);  
-	float qx2 = q.x*q.x;
-	float qy2 = q.y*q.y;
-	float qz2 = q.z*q.z;
-
-	float qxqy = q.x*q.y;
-	float qxqz = q.x*q.z;
-	float qxqw = q.x*q.w;
-	float qyqz = q.y*q.z;
-	float qyqw = q.y*q.w;
-	float qzqw = q.z*q.w;
-	return float3(
-		(1-2*(qy2+qz2))*v.x + (2*(qxqy-qzqw))*v.y + (2*(qxqz+qyqw))*v.z ,
-		(2*(qxqy+qzqw))*v.x + (1-2*(qx2+qz2))*v.y + (2*(qyqz-qxqw))*v.z ,
-		(2*(qxqz-qyqw))*v.x + (2*(qyqz+qxqw))*v.y + (1-2*(qx2+qy2))*v.z  );
-	assert(0);  // must multiply with the quat on the left
-	return float3(0.0f,0.0f,0.0f);
-}
-float3 operator*( const float3& v, const Quaternion& q )
-{
-	assert(0);  // must multiply with the quat on the left
-	return float3(0.0f,0.0f,0.0f);
-}
-
-Quaternion operator+( const Quaternion& a, const Quaternion& b )
-{
-	return Quaternion(a.x+b.x, a.y+b.y, a.z+b.z, a.w+b.w);
-}
-
-float dot( const Quaternion &a,const Quaternion &b )
-{
-	return  (a.w*b.w + a.x*b.x + a.y*b.y + a.z*b.z); 
-}
-
-Quaternion normalize(const Quaternion &a )
-{
-	float m = sqrtf(squared(a.w)+squared(a.x)+squared(a.y)+squared(a.z));
-	if(m<0.000000001f) 
-    {
-		return Quaternion(0,0,0,1.0f);
-	}
-	return a * (1.0f/m);
-}
 
 Quaternion slerp(const Quaternion &_a, const Quaternion& b, float interp )
 {
@@ -704,8 +490,9 @@ float Pitch( const Quaternion& q )
 	return RadToDeg(atan2f(v.z,sqrtf(squared(v.x)+squared(v.y))));
 }
 
-float Roll( Quaternion q )
+float Roll( const Quaternion &_q )
 {
+	Quaternion q=_q;
 	q = QuatFromAxisAngle(float3(0.0f,0.0f,1.0f),-DegToRad(Yaw(q)))  *q;
 	q = QuatFromAxisAngle(float3(1.0f,0.0f,0.0f),-DegToRad(Pitch(q)))  *q;
 	return RadToDeg(atan2f(-q.xdir().z,q.xdir().x));
@@ -1200,7 +987,7 @@ float3 PlanesIntersection(const Plane *planes,int planes_count,const float3 &see
 Plane Transform(const Plane &p, const float3 &translation, const Quaternion &rotation) 
 {
 	//   Transforms the plane by the given translation/rotation.
-	float3 newnormal = Inverse(rotation)*float3(p.normal());
+	float3 newnormal = rotate(rotation,p.normal());
 	return Plane(newnormal, p.dist() - dot(newnormal,translation));
 }
 

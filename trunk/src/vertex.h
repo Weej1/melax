@@ -14,47 +14,33 @@
 #include "object.h" // so bones can be objects and I can test them directly - this should eventually be removed.
 #include "wingmesh.h"
 
+
 class Vertex
 {
   public:
 	float3  position;
-	float3  normal;
-	float2 texcoord;	
+	float4  orientation;  // tangent space basis in quat form
+	float2  texcoord;	
 	float3  tangent;
 	float3  binormal;
+	float3  normal;
 	Vertex(){}
-	Vertex(const float3& _pos,const float3 &_nrm, const float2 &_tex, const float3 &_tng, const float3 &_bnm)
-		:position(_pos),normal(_nrm),texcoord(_tex),tangent(_tng),binormal(_bnm){}
-	static char *semantic() { return "position normal texcoord tangent binormal";}
+	Vertex(const float3& _pos,const float4 &_orn, const float2 &_tex)
+		:position(_pos),orientation(_orn),texcoord(_tex){}
+	static char *semantic() { return "position orientation texcoord";}
 };
-
 
 
 class VertexS
 {
   public:
 	float3  position;
-	float4  weights;
-	byte4   bones;
-	float3  normal;
-	byte4   color;
+	float4  orientation;  // tangent space basis in quat form
 	float2  texcoord;	
-	float3  tangent;
-	float3  binormal;
+	byte4   bones;
+	float4  weights;
 	VertexS(){}
-	static char *semantic() { return "position blendweights blendindices normal color texcoord tangent binormal";}
-};
-
-
-class VertexPN  // position and normal
-{
-  public:
-	float3  position;
-	float3  normal; 
-	VertexPN(){}
-	VertexPN(const float3& _position,const float3 &_normal)
-		:position(_position),normal(_normal){}
-	static char *semantic() { return "position normal";}
+	static char *semantic() { return "position orientation texcoord bones weights";}
 };
 
 
@@ -80,6 +66,9 @@ public:
 	virtual const float4x4 &GetWorld()=0;  // plan to make this unnecessary
 };
 
+struct IDirect3DVertexBuffer9;
+struct IDirect3DIndexBuffer9;
+struct IDirect3DVertexDeclaration9;
 
 class Model;
 
@@ -88,6 +77,7 @@ class DataMesh : public MeshBase
 public:
 	int matid;
 	Array<Vertex> vertices;
+	VertexS *sverts;
 	Array<short3> tris;
 	int   vertexnum() { return vertices.count; }
 	int   stride()    {return sizeof(Vertex);}
@@ -99,18 +89,19 @@ public:
 	const float4x4 &GetWorld();
 	virtual const float3 &Bmin();  // assumed to be local to the mesh i.e. in model space, not world
 	virtual const float3 &Bmax();
-	DataMesh():matid(0),model(NULL){}
-	~DataMesh(){}
+	int manifold;
+	IDirect3DVertexBuffer9 *vb;  // for d3d gpu cacheing
+	IDirect3DIndexBuffer9  *ib;
+	IDirect3DVertexDeclaration9 *vdecl;
+
+	DataMesh():matid(0),model(NULL),sverts(NULL),manifold(0),vb(NULL),ib(NULL),vdecl(NULL){}
+	~DataMesh();
 };
 
 
 
 
-class MeshHW;
 class Model;
-
-MeshHW *DynamicCastMeshHW(MeshBase*);
-
 
 class KeyFrame
 {
@@ -119,7 +110,7 @@ public:
 	Pose  pose;
 };
 
-class Bone : public Object, public Pose
+class Bone :  public Pose
 {
 public:
 	Pose basepose;
@@ -128,6 +119,7 @@ public:
 	Bone *parent;
 	Model *model;
 	WingMesh* geometry;
+	String id;
 	Bone(const char *_name,Model *_model,Bone *_parent=NULL);
 	~Bone();
 };
@@ -135,11 +127,12 @@ public:
 class Model
 {
   public:
-	Array<MeshHW *> meshes;
 	Array<DataMesh*> datameshes;
 	float3 bmin,bmax; // local
 	float4x4 modelmatrix;  // also known as "world" matrix in direct3d-speak - converts object local to world space
 	Array<float4x4> currentpose;  // 
+	Array<float3> currentposep;
+	Array<Quaternion> currentposeq;
 	Array<Bone*> skeleton;
 	Model();
 	~Model();
@@ -149,7 +142,10 @@ class Model
 class Kobbelt
 {
 public:
-	const float3 *pos;
+	const float4 *pos4;
+	const float3 *pos3;
+	const float* pos;
+	int stride_inner,stride_outer;
 	const int w,h;
 	int subdiv;
 	int wireframe;
@@ -157,8 +153,11 @@ public:
 	float  texscale; // for tiling textures
 	Model *model;
 	DataMesh  *mesh;
+	DataMesh  *shadow;
 	int &matid;
+	Kobbelt(const float4 *_pos,int _w,int _h,int _s);
 	Kobbelt(const float3 *_pos,int _w,int _h,int _s);
+	Kobbelt(const float  *_pos,int _stride_inner, int _stride_outer,int _w,int _h,int _s);
 	~Kobbelt(){delete model;}
 	void Update();
 	void Draw();
@@ -174,6 +173,8 @@ inline 	const float4x4 &DataMesh::GetWorld()
 inline const float3 &DataMesh::Bmin(){assert(model);return model->bmin;}
 inline const float3 &DataMesh::Bmax(){assert(model);return model->bmax;}
 
+void BoxLimits(const Vertex *verticies,int count,float3 &bmin,float3 &bmax,int reset_prior_limits=1);
+template<class T> inline void BoxLimits(Array<T> &a,float3 &bmin,float3 &bmax,int reset_prior_limits=1){return BoxLimits(a.element,a.count,bmin,bmax,reset_prior_limits);}
 
 #endif
 
