@@ -56,7 +56,7 @@ class RigidBody : public State , public Collidable
 	Quaternion		orientation_next;
 	float3			position_old;  // used by penetration rollback
 	Quaternion		orientation_old;  // used by penetration rollback
-	float           damping;
+	//float           damping;
 	float			friction;  // friction multiplier
 					RigidBody(WingMesh *_geometry,const Array<Face *> &_faces,const float3 &_position);
 					RigidBody(BSPNode *_bsp,const Array<Face *> &_faces,const float3 &_position);

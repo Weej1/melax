@@ -32,7 +32,8 @@ int HitCheckCylinder(float r,float h,Brush *brush,const float3 &_v0)
 }
 
 
-class Player: public Object
+
+class Player: public Entity
 {
   public:
 	float3     position;
@@ -45,8 +46,9 @@ class Player: public Object
 	float      headtilt;
 	float3     groundnormal;
 
-	Player():Object("player"),height(1.75f),radius(0.3f)
+	Player():Entity("player"),height(1.75f),radius(0.3f)
 	{
+		LEXPOSEOBJECT(Player,"bob");
 		EXPOSEMEMBER(position);
 		EXPOSEMEMBER(positionnew);
 		EXPOSEMEMBER(positionold);
@@ -64,8 +66,15 @@ class Player: public Object
 	Brush *findspace();
 };
 
+LDECLARE(Player,position);
+LDECLARE(Player,orientation);
+
 Player gplayer;
 float3 &PlayerPosition(){return gplayer.position;}
+Quaternion &PlayerOrientation(){return gplayer.orientation;}
+float& PlayerHeadtilt(){return gplayer.headtilt;}
+float& PlayerHeight(){return gplayer.height;}
+
 float3 accelleration;
 float3 gravity(0,0,-10.0f);
 float  maximumspeed = 10.0f;
@@ -79,7 +88,6 @@ int    moveright;
 int    movejump;
 float  moveturn;
 float  movetilt;
-int    mlook;
 int    movedown;
 
 EXPORTVAR(accelleration);
@@ -95,7 +103,6 @@ EXPORTVAR(moveright);
 EXPORTVAR(movejump);
 EXPORTVAR(moveturn);
 EXPORTVAR(movetilt);
-EXPORTVAR(mlook);
 EXPORTVAR(movedown);
 
 float mouse_sensitivity=0.5f;
@@ -117,7 +124,7 @@ EXPORTVAR(viewanglemin);
 float zoomrate=90.0f;
 EXPORTVAR(zoomrate);
 int zoommode=0;
-float camzoomin(char*)
+float camzoomin(const char*)
 {
 	if(zoommode==0)
 	{
@@ -128,8 +135,11 @@ float camzoomin(char*)
 	return viewangle;
 }
 EXPORTFUNC(camzoomin);
-String camzoomout(char*)
+String camzoomout(const char*)
 {
+	//currently not capturing every frame key is up...
+viewangle = viewangle_previous;  // not smooth here
+
 	if(!zoommode) return "";
 	viewangle += zoomrate*DeltaT;
 	if(viewangle>=viewangle_previous)
@@ -156,15 +166,7 @@ void Player::wasd_mlook()
 	//if(!currentroom) currentroom=area;
 	if(!jumpsound)jumpsound=SoundCreate("whoosh.wav");
 
-	//const float3 position    = object->hash["position"];
-	//float      &headtilt     = object->hash["headtilt"];
-	////int        &groundcontact= object->hash["groundcontact"];
-	//float3     &groundnormal = object->hash["groundnormal"];
-	//Quaternion &orientation  = object->hash["orientation"];
-	//float3     &positionnew  = object->hash["positionnew"];
-	//float3     &velocity     = object->hash["velocity"];
-
-	if(mlook && centermouse &&focus ) {
+	if(centermouse &&focus ) {
 		moveturn = -MouseDX * mouse_sensitivity*viewangle;
 		movetilt =  MouseDY * mouse_sensitivity*viewangle;
 	}
@@ -208,7 +210,7 @@ void Player::wasd_mlook()
 	movejump=moveforward=movebackward=moveleft=moveright=movedown=0;
 	movetilt=moveturn=0.0f;
 }
-void wasd_mlook(Object *object) 
+void wasd_mlook(Entity *object) 
 {
 	assert(&gplayer == object);
 	gplayer.wasd_mlook();
@@ -216,16 +218,12 @@ void wasd_mlook(Object *object)
 
 
 
-int playerstuck(Object *object)
+int playerstuck(Player *e)
 {
-	float3     &position     = object->hash["position"];
-	float      &height       = object->hash["height"];
-	float      &radius       = object->hash["radius"];
-	float3 impact;
 	if(!currentroom) { return 1;}
-	return HitCheckCylinder(radius,height,currentroom,position);
+	return HitCheckCylinder(e->radius,e->height,currentroom,e->position);
 }
-char *stuckcheck(char*)
+char *stuckcheck(const char*)
 {
 	return (playerstuck(&gplayer))?"WARN: Player Embedded In Solid Matter":"";
 }
@@ -321,15 +319,6 @@ Brush *Player::findspace()
 
 void Player::move()
 {
-	//int        &groundcontact= object->hash["groundcontact"];
-//	float3     &groundnormal = object->hash["groundnormal"];
-//	float3     &position     = object->hash["position"];
-//	float3     &positionold  = object->hash["positionold"];
-//	float3     &positionnew  = object->hash["positionnew"];
-//	float3     &velocity     = object->hash["velocity"];
-//	float      &object_height= object->hash["height"];
-//	float      &object_radius= object->hash["radius"];
-
 	positionold=position;
 	float3 unused; // dummy variable to store returned unused impact point
 	if(playerstuck(&gplayer)) jumpareacheck=1;
@@ -380,7 +369,7 @@ void Player::move()
 	}
 }
 
-void playermove(Object *object)
+void playermove(Entity *object)
 {
 	assert(object==&gplayer);
 	gplayer.move();
@@ -389,10 +378,6 @@ void playermove(Object *object)
 
 void Player::wasd_fly()
 {
-	//float3     &position     = object->hash["position"];
-	//float      &headtilt     = object->hash["headtilt"];
-	//Quaternion &orientation  = object->hash["orientation"];
-	//float3     &velocity     = object->hash["velocity"];
 	positionold=position;
 	if(playerstuck(&gplayer)) jumpareacheck=1;
 	Brush *newarea;
@@ -403,7 +388,7 @@ void Player::wasd_fly()
 	}
 
 
-	if(mlook && centermouse && focus) {
+	if(centermouse && focus) {
 		moveturn = -MouseDX * mouse_sensitivity*viewangle;
 		movetilt =  MouseDY * mouse_sensitivity*viewangle;
 	}
@@ -435,7 +420,7 @@ void Player::wasd_fly()
 	movetilt=moveturn=0.0f;
 
 }
-void wasd_fly(Object *object)
+void wasd_fly(Entity *object)
 {
 	assert(object==&gplayer);
 	gplayer.wasd_fly();
@@ -452,11 +437,7 @@ void Player::spinmove(const float3 &cr)
 		jumpareacheck=0;
 	}
 
-	//float3     &position     = object->hash["position"];
-	//float      &headtilt     = object->hash["headtilt"];
-	//Quaternion &orientation  = object->hash["orientation"];
 	Quaternion q0 = orientation * YawPitchRoll(0,headtilt+90,0);
-	//float      &objectheight = object->hash["height"];
 	
 	moveturn = -MouseDX * mouse_sensitivity*viewangle;
 	movetilt =  MouseDY * mouse_sensitivity*viewangle;
@@ -468,7 +449,7 @@ void Player::spinmove(const float3 &cr)
 	position = cr + rotate(q1*Inverse(q0),(position+float3(0,0,height)-cr))  - float3(0,0,height);
 	moveturn = movetilt = 0.0f;
 }
-void spinmove(Object *object,const float3 &cr)
+void spinmove(Entity *object,const float3 &cr)
 {
 	assert(object=&gplayer);
 	gplayer.spinmove(cr);
