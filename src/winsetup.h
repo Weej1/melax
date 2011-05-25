@@ -18,24 +18,67 @@
 #ifndef SM_WIN_SETUP_H
 #define SM_WIN_SETUP_H
 
-#include <Windows.h>
-#include <d3dx9.h>
+
+#include <assert.h>
 
 #ifdef NDEBUG
 #define VERIFY_RESULT  (0)
 #else
-#define VERIFY_RESULT  (_assert("call returned failure", __FILE__, __LINE__),0)
+#define VERIFY_RESULT  (assert(0),0)
 #endif
 
-extern LPDIRECT3DDEVICE9       g_pd3dDevice; 
+extern struct IDirect3DDevice9 *       g_pd3dDevice; 
 
 
-LRESULT WINAPI MsgProc( HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam );
-int  WinD3DInit( HINSTANCE hInst,WNDPROC MsgProc);
+
+int  WinD3DInit( );
 void ShutDown();
 int  WindowUp();
 extern float DeltaT;
 extern float GlobalTime;
 
+
+
+class Profile
+{
+public:
+	//static Profile* current;
+	//Profile *parent;
+	__int64 start;
+	const char *name;
+	inline Profile(const char *_name):name(_name)
+	{
+		//parent=current;
+		//current=this;
+		__int64 _start=0;
+	/*	__asm
+		{
+			cpuid;                // Force completion of out-of-order processing
+			rdtsc;                // Read timestamp counter
+			mov DWORD PTR [_start    ], eax;  // Copy counter value into variable
+			mov DWORD PTR [_start + 4], edx 
+		}
+	*/
+		start=_start;
+	}
+	inline ~Profile()
+	{
+		__int64 finish=1;
+/*
+		__asm
+		{
+			cpuid;                // Force completion of out-of-order processing
+			rdtsc;                // Read timestamp counter
+			mov DWORD PTR [finish    ], eax;  // Copy counter value into variable
+			mov DWORD PTR [finish + 4], edx 
+		}
+*/
+		addrecord(name,(int) (finish-start));
+		//current=parent;
+	}
+	void addrecord(const char *name,int cycles);
+};
+void ProfileReset();
+#define PROFILE(n) Profile _pf ## n (#n);
 
 #endif

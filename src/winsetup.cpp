@@ -16,6 +16,7 @@
 #include "d3dfont.h"
 #include "vecmath.h"
 #include "console.h"
+#include "manipulator.h"
 
 #ifndef WM_MOUSEWHEEL 
 #define WM_MOUSEWHEEL  (0x020A)
@@ -50,7 +51,7 @@ float	MouseDY;
 int     MouseLeft=0;      // true iff left button down
 int     MouseRight=0;     // true iff right button down
 extern float  &viewangle;
-int		centermouse;
+int		centermouse=1;
 int     focus;
 int     quitrequest;
 int     windowwidth=640,windowheight=480;
@@ -58,6 +59,10 @@ int     windowx=50,windowy=50;
 float   winresreduction=1.0f;
 int 	Width  = windowwidth;
 int 	Height = windowheight;
+int     shiftdown=0;
+int     ctrldown =0;
+EXPORTVAR(shiftdown);
+EXPORTVAR(ctrldown);
 EXPORTVAR(windowwidth);
 EXPORTVAR(windowheight);
 EXPORTVAR(windowx);
@@ -81,8 +86,8 @@ float oneoverheight=1.0f/480.0f;
 EXPORTVAR(oneoverwidth);
 EXPORTVAR(oneoverheight);
 
-String windowtitle("The Boston Tea Party!  (mini game demo - www.melax.com)");
-//EXPORTVAR(windowtitle);
+String windowtitle("Insert Game Title Here");
+EXPORTVAR(windowtitle);
 
 int entertext=0;
 char comstring[512];
@@ -153,85 +158,29 @@ void ComputeMouseVector(int winx,int winy){
 
 
 void PrintStats(){
-	char buf[1024];buf[0]='\0';
+	String s;
 	if(entertext) {
-		sprintf(buf,"> %s",comstring);
-		PostString(buf,0,0,5);
+		s << "> " << comstring;
+		PostString(s,0,0,5);
 	}
 }
 
-static char* quit(char*)
+static char* quit(const char*)
 {
 	quitrequest=1;
 	return "quitting";
 }
 EXPORTFUNC(quit);
-static char* exit(char*)
+static char* exit(const char*)
 {
 	quitrequest=1;
 	return "quitting";
 }
 EXPORTFUNC(exit);
 
-//----------------------------------------------------
-// Key Bindings
-// 
-class Binding {
-  public:
-	char key;
-	char command[256];
-	char command_negative[256];
-	Binding();
-	~Binding();
-	int flag; // 1==continuous/repeat  0==discrete/once  2==tied_to_keystate
-	int active;  // true if key was down last frame
-	int *varbinding;
-	int IsDown(); // if the button (or whatever device), is down, true, or whatever.
-};
-Array<Binding *> bindings;
-int BindingActivated;
-
-Binding::Binding(){
-	key='\0';
-	command[0]='\0';
-	command_negative[0]='\0';
-	bindings.Add(this);
-	flag=0;
-	active=0;
-	varbinding=NULL;
-}
-
-Binding::~Binding(){
-	bindings.Remove(this);
-}
-
-int Binding::IsDown(){
-	if(varbinding) {
-		return *varbinding;
-	}
-	GetAsyncKeyState((int)key);// hack since getasynckeystate detects later
-	return(GetAsyncKeyState((int)key));
-}
-
-Binding *FindBinding(char key) {
-	for(int i=0;i<bindings.count;i++) {
-		if(bindings[i]->key==key){return bindings[i];}
-	}
-	return NULL;
-}
-Binding *FindBinding(int *varbinding) {
-	if(!varbinding) {
-		return NULL;
-	}
-	for(int i=0;i<bindings.count;i++) {
-		if(bindings[i]->varbinding==varbinding){return bindings[i];}
-	}
-	return NULL;
-}
-
 static float lastexectimer;
 static String lastexec;
-static const char *lastkey(char*)
+static const char *lastkey(const char*)
 {
 	if(lastexectimer<=0) {return "";}
 	lastexectimer -= DeltaT;
@@ -241,36 +190,18 @@ EXPORTFUNC(lastkey);
 
 void DoBindings(){
 	if(!focus) return;
-	for(int i=0;i<bindings.count;i++) {
-		if(bindings[i]->flag==2)
+	for(int i=0;i<128;i++)
+	{
+		GetAsyncKeyState(i);// hack since getasynckeystate detects later
+		if(GetAsyncKeyState(i))
 		{
-			char buf[256];
-			sprintf(buf,"%s %s",bindings[i]->command,(bindings[i]->IsDown())?"1":"0");
-			FuncInterp(buf);
-		}
-		else if(bindings[i]->IsDown()) {
-			if(bindings[i]->flag || !bindings[i]->active) {
-				BindingActivated = (bindings[i]->active==0);
-				String s = FuncInterp(bindings[i]->command);
-				if(bindings[i]->flag==0)
-				{
-					lastexec = String(bindings[i]->command) + ": "+ s;
-					lastexectimer = 1.0f;
-				}
-				BindingActivated=0;
-			}
-			bindings[i]->active=1;
-		}
-		else {
-			bindings[i]->active=0;
-			if(*bindings[i]->command_negative) {
-				FuncInterp(bindings[i]->command_negative);
-			}
+			extern void keyvent(const char *name,int k);
+			keyvent("keyheld",i);
 		}
 	}
 } 
 
-static char *keysdown(char *s) {
+static char *keysdown(const char *s) {
 	int i;
 	static char buf[256];
 	if(*s && 1==sscanf(s,"%d",&i) && i>=0)
@@ -287,124 +218,6 @@ static char *keysdown(char *s) {
 }
 EXPORTFUNC(keysdown);
 
-static char *bind(char *param) {
-	static char buf[512];
-	int n,i;
-	int neg=0;
-	int flag=0;
-	char keyname[64];
-	char key='\0';
-	int *varbinding=NULL;
-	keyname[0]='\0';
-	buf[0]='\0';
-	while(*param==' '){param++;}
-	sscanf(param,"%s%n",keyname,&n);
-	if(! keyname[0]) {
-		sprintf(buf,"%d bindings: ",bindings.count);
-		for(i=0;i<bindings.count;i++) {
-			sprintf(buf+strlen(buf)," %c(%d)",bindings[i]->key,(int)bindings[i]->key);
-		}
-		return buf;
-	}
-	param += n;
-	while(*param==' '||*param=='\t') {param++;}
-	if(*param == '+') {
-		// using the quake standard!
-		flag|=1;
-		param++;
-	}
-	if(*param == '-') {
-		// execute when user lifts this key
-		flag|=1;
-		neg=1;
-		param++;
-	}
-	if(*param == '=') {
-		// execute every frame using keystate
-		flag=2;
-		param++;
-	}
-
-	if(!stricmp(keyname,"MouseLeft")) {
-		varbinding = &MouseLeft;
-	}
-	else if(!stricmp(keyname,"MouseRight")) {
-		varbinding = &MouseRight;
-	}
-	else if(!stricmp(keyname,"SPACE")) {
-		key = 32;
-	}
-	else if(!stricmp(keyname,"LEFT")) {
-		key = 37;
-	}
-	else if(!stricmp(keyname,"RIGHT")) {
-		key = 39;
-	}
-	else if(!stricmp(keyname,"UP")) {
-		key = 38;
-	}
-	else if(!stricmp(keyname,"DOWN")) {
-		key = 40;
-	}
-	else if(keyname[0]=='\\') {
-		int tmp=0;
-		sscanf(keyname+1,"%d",&tmp);
-		key = tmp;
-	}
-	else if(strlen(keyname)!=1) {
-		return "sorry, only basic alpha chars at this time";
-	}
-	else if(keyname[0]>='a' && keyname[0] <='z') {
-		key = keyname[0] += 'A'-'a';
-	}
-	else {
-		key = keyname[0];
-	}
-	Binding *b=FindBinding(key);
-	if(!b && varbinding) {
-		b=FindBinding(varbinding);
-	}
-	if(!param[0]){
-		if(!b) {
-			sprintf(buf,"%s has no binding",keyname);
-		}
-		else {
-			sprintf(buf,"%s bound to %s (%s)",keyname,b->command,(flag==2)?"tied":(b->flag)?"repeat":"once");
-		}
-		return buf;
-	}
-	char firstword[64];
-	firstword[0]='\0';
-	sscanf(param,"%s",firstword);
-	if(!stricmp(firstword,"0") ||!stricmp(firstword,"NULL")) {
-		if(!b) {
-			sprintf(buf,"%s didn't have a binding anyway",keyname);
-		}
-		else {
-			sprintf(buf,"%s no longer bound to %s",keyname,b->command);
-			delete b;
-		}
-		return buf;
-	}
-	sprintf(buf,"%s binding for %s \"%s\" %s",(b)?"changing":"adding",keyname,param,(flag==2)?"tied":(flag)?"repeat":"once");
-	if(!b) {
-		b=new Binding();
-		b->key = key;
-		b->varbinding = varbinding;
-	}
-	if(!neg) {
-		b->flag = flag;
-		strcpy(b->command,param);
-		b->command_negative[0]='\0';
-	}
-	else{
-		strcpy(b->command_negative,param);
-	}
-	return buf;
-}
-EXPORTFUNC(bind);
-
-
 
 void doconsole(char c) {
 	if(c==27){  // ESC escape key
@@ -418,7 +231,7 @@ void doconsole(char c) {
 		char buf[1024];
 		sprintf(buf,"* %s",comstring);
 		PostString(buf,0,0,5);
-		char *rv=FuncInterp(comstring);
+		String rv=FuncInterp(comstring);
 		PostString(rv,0,1,5);
 		return;
 	}
@@ -429,10 +242,10 @@ void doconsole(char c) {
 		return;
 	}
 	if(c=='\t') {
-		Array<const char *> match;
+		Array<String> match;
 		char *rv=CommandCompletion(comstring,match);
 		strcpy(comstring,rv);
-		char *pre=FuncPreInterp(comstring);
+		String pre=FuncPreInterp(comstring);
 		PostString(pre,0,1,1);
 		if(match.count>1) {
 			static int offset=0;
@@ -463,6 +276,10 @@ static int vsync_current=vsync; // so we can track when this is changed and rese
 EXPORTVAR(backbuffercount);
 EXPORTVAR(vsync);
 
+int d3dcreate_software_vertexprocessing=0;
+EXPORTVAR(d3dcreate_software_vertexprocessing);
+
+
 HRESULT InitD3D( HWND hWnd )
 {
     // Create the D3D object.
@@ -482,7 +299,7 @@ HRESULT InitD3D( HWND hWnd )
 	vsync_current = vsync;
     // Create the D3DDevice
     if( FAILED( g_pD3D->CreateDevice( D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, hWnd,
-                                      D3DCREATE_HARDWARE_VERTEXPROCESSING,
+                                      ((d3dcreate_software_vertexprocessing)? D3DCREATE_SOFTWARE_VERTEXPROCESSING :D3DCREATE_HARDWARE_VERTEXPROCESSING),
                                       &d3dpp, &g_pd3dDevice ) ) )
     {
 		if( FAILED( g_pD3D->CreateDevice( D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, hWnd,
@@ -523,7 +340,7 @@ void cuberelease()
 int windowed=1;
 EXPORTVAR(windowed);
 int screenwidth=0,screenheight=0;
-int resetdevice(char *)
+int resetdevice(const char *)
 {
 	if(windowed==0)
 	{
@@ -592,12 +409,26 @@ EXPORTVAR(msglast);
 // Name: MsgProc()
 // Desc: The window's message handler
 //-----------------------------------------------------------------------------
+Array<String> dropfiles;
+
 LRESULT WINAPI MsgProc( HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam )
 {
     switch( msg )
     {
 		case WM_DROPFILES:
 			{
+				/*RECT rect;
+				POINT pt;
+				GetWindowRect(hWnd,&rect);
+				GetCursorPos(&pt);
+				if(windowed)
+				{	
+					rect.left -= window_inset.left; // todo: look into the function: ScreenToClient(hwnd,point)
+					rect.top  -= window_inset.top;
+				}
+				ComputeMouseVector(pt.x-rect.left,pt.y-rect.top);
+				*/
+				//MouseVector = float3(0,0,-1);
 				HDROP hDrop = (HDROP)wParam;
 				unsigned int n = DragQueryFileA(hDrop, 0xFFFFFFFF, NULL, 0);
 				for(unsigned int i=0; i<n; i++)
@@ -608,7 +439,7 @@ LRESULT WINAPI MsgProc( HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam )
 						char *s = fname+strlen(fname);
 						while (s>fname && *s != '.' ) s--;
 						if(*s=='.') s++;
-						FuncInterp(String(s) + " " + fname);
+						dropfiles.Add(String(s) + " \"" + fname + "\"");
 					}
 				}
 				DragFinish(hDrop);
@@ -633,6 +464,8 @@ LRESULT WINAPI MsgProc( HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam )
 				doconsole(wParam);
 				return 0;
 			}
+			if(ManipulatorKeyPress((int) wParam))  // manipulator is taking the key input!!!
+				return 0;
 			switch (wParam) {
 				case 27: /* ESC key */
 					PostQuitMessage(0);
@@ -645,28 +478,44 @@ LRESULT WINAPI MsgProc( HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam )
 					comstring[0]='\0';
 					break;
 				default:
-					extern int ManipulatorKeyPress(int k);
-					ManipulatorKeyPress((int) wParam);
-					break;
+					{
+						extern void keyvent(const char *name,int k);
+						keyvent("keydown",toupper((int)wParam));
+						break;
+					}
 			}
 			return 0;
-
+		case WM_KEYUP:
+			{
+				if(entertext || ManipulatorKeysGrab())
+					return 0;
+				extern void keyvent(const char *name,int k);
+				keyvent("keyup",toupper((int)wParam));
+				return 0;
+			}
 		case WM_LBUTTONDOWN:
 			/* if we don't set the capture we won't get mouse move
 			   messages when the mouse moves outside the window. */
 			SetCapture(hWnd);
 			ComputeMouseVector(LOWORD(lParam),HIWORD(lParam));
+			shiftdown = (wParam&MK_SHIFT)?1:0;
+			ctrldown  = (wParam&MK_CONTROL)?1:0;
 			MouseLeft = 1;
 			return 0;
 
 		case WM_RBUTTONDOWN:
 			SetCapture(hWnd);
 			ComputeMouseVector(LOWORD(lParam),HIWORD(lParam));
-			MouseRight = 1;
+			shiftdown = (wParam&MK_SHIFT)?1:0;
+			ctrldown  = (wParam&MK_CONTROL)?1:0;
+			MouseRight = 1; 
+			FuncInterp("rbuttondown");
 			return 0;
 
 		case WM_LBUTTONUP:
 			ComputeMouseVector(LOWORD(lParam),HIWORD(lParam));
+			shiftdown = (wParam&MK_SHIFT)?1:0;
+			ctrldown  = (wParam&MK_CONTROL)?1:0;
 			MouseLeft=0;
 			/* remember to release the capture when we are finished. */
 			if(!MouseRight) ReleaseCapture();
@@ -674,6 +523,8 @@ LRESULT WINAPI MsgProc( HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam )
 
 		case WM_RBUTTONUP:
 			ComputeMouseVector(LOWORD(lParam),HIWORD(lParam));
+			shiftdown = (wParam&MK_SHIFT)?1:0;
+			ctrldown  = (wParam&MK_CONTROL)?1:0;
 			MouseRight=0;
 			/* remember to release the capture when we are finished. */
 			if(!MouseLeft) ReleaseCapture();
@@ -681,8 +532,12 @@ LRESULT WINAPI MsgProc( HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam )
 
 		case WM_MOUSEMOVE:
 			ComputeMouseVector(LOWORD(lParam),HIWORD(lParam));
+			shiftdown = (wParam&MK_SHIFT)?1:0;
+			ctrldown  = (wParam&MK_CONTROL)?1:0;
 			return 0;
 		case  WM_MOUSEWHEEL:
+			shiftdown = (wParam&MK_SHIFT)?1:0;
+			ctrldown  = (wParam&MK_CONTROL)?1:0;
 			mousewheel += GET_WHEEL_DELTA_WPARAM(wParam)/WHEEL_DELTA;
 			return 0;
         case WM_SETCURSOR:
@@ -757,7 +612,7 @@ EXPORTFUNC(scanwindows);
 
 
 static HINSTANCE hInst;
-int WinD3DInit( HINSTANCE ,WNDPROC MsgProc)
+int WinD3DInit(  )
 {
 	PROFILE(wind3dinit);
     // Register the window class
@@ -814,6 +669,8 @@ int WindowUp()
 	MouseVectorOld=MouseVector;
 	MouseXOld = MouseX;
 	MouseYOld = MouseY;
+	while(dropfiles.count)  // I had to delay this a frame since mousevector and manipulator needs updating.
+		FuncInterp(dropfiles.Pop());
 	MSG   msg;				/* message */
 	while(PeekMessage(&msg, hWnd, 0, 0, PM_NOREMOVE)) {
 		if(GetMessage(&msg, hWnd, 0, 0)) {
@@ -875,7 +732,7 @@ int WindowUp()
 	}
 
 	CalcFPSDeltaT();
-	if(!entertext) {
+	if(!entertext && !ManipulatorKeysGrab()) {
 		DoBindings();
 	}
 	else {
@@ -891,7 +748,7 @@ EXPORTVAR(screengrabcount);
 
 String screengrab(String filename)
 {
-	if(filename=="")
+	if(filename=="" || filename == " () ")
 	{
 		filename.sprintf("%s_%5.5d_.bmp",(const char*)screengrabprefix,screengrabcount);		
 		screengrabcount++;
@@ -928,3 +785,104 @@ String screengrab(String filename)
 	return (hr==D3D_OK)? filename + " exported!" : "something failed";
 }
 EXPORTFUNC(screengrab);
+
+
+
+//------- profile ------
+class profentry
+{
+public:
+	float   total;
+	unsigned count;
+	float    avg;
+	int      mn;
+	int      mx;
+	int    last;
+	profentry():total(0),count(0),avg(0),mx(0),mn(INT_MAX),last(0){}
+};
+
+Hash<String,profentry> profdb;
+void Profile::addrecord(const char *name,int cycles)
+{
+	profentry &e = profdb[name];
+	e.count++;
+	e.total+= cycles;
+	e.avg = (float) e.total/e.count;
+	e.mx = Max(e.mx,(int)cycles);
+	e.mn = Min(e.mn,(int)cycles);
+	e.last=cycles;
+}
+String profile(String name)
+{
+	if(!profdb.Exists(name)) return "no such entry in the profile database";
+	profentry &e = profdb[name];
+	String s;
+	s.sprintf("Count %d  total %f   average %f   min,max [%d,%d] last %f",(int) e.count, e.total, e.avg , e.mn, e.mx,e.last);
+	return s;
+}
+EXPORTFUNC(profile);
+
+String perffrequency(String)
+{
+	LARGE_INTEGER freq;
+	freq.QuadPart=0;
+	QueryPerformanceFrequency(&freq);
+	if(freq.QuadPart > 1000000)
+		return String((float) freq.QuadPart / 1000000.0f ) + " Mhz";
+	//else
+	return String((float) freq.QuadPart );  
+}
+EXPORTFUNC(perffrequency);
+
+String cpufrequency(String)
+{
+	LARGE_INTEGER freq;  freq.LowPart=0; freq.HighPart=0;
+	int rc=QueryPerformanceFrequency(&freq);
+	if(!freq.LowPart) return "error with QueryPerformanceFrequency";
+	assert(rc);
+	LARGE_INTEGER current,start,nextsec;
+	QueryPerformanceCounter(&current);
+	while(QueryPerformanceCounter(&start)&&start.QuadPart==current.QuadPart)  // so start is at next tick
+	{
+	}
+	nextsec.QuadPart=start.QuadPart + freq.QuadPart;
+	{
+		PROFILE(onesecond);
+		while(QueryPerformanceCounter(&current) && current.QuadPart < nextsec.QuadPart)
+		{
+		}
+	}
+	return profile("onesecond");
+}
+EXPORTFUNC(cpufrequency);
+
+
+
+String profilesave(String)
+{
+	FILE *fp=fopen("profile.log","w");
+	if(!fp) return "couldn't open file";
+	for(int i=0;i<profdb.slots_count;i++)
+	 if(profdb.slots[i].used)
+	{
+		fprintf(fp,"%s: %s\n",(const char*)profdb.slots[i].key,(const char*)profile(profdb.slots[i].key));
+	}
+	fclose(fp);
+	return "OK";
+}
+EXPORTFUNC(profilesave);
+
+String profilereset(const char *)
+{
+	int i;
+	for(i=0;i<profdb.slots_count;i++) 
+	{
+		profentry &e = profdb.slots[i].value;
+		e.count=0;
+		e.total=0.0f;
+	}
+	return String("done");
+}
+EXPORTFUNC(profilereset);
+
+void ProfileReset(){profilereset(NULL);}

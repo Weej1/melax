@@ -6,7 +6,6 @@
 #include "wingmesh.h"
 #include "bsp.h"
 #include "array.h"
-#include "polymesh.h"
 #include "vertex.h"
 
 
@@ -1667,6 +1666,7 @@ DataMesh *MakeSmoothMesh(WingMesh *wmesh)
 		float3 &v = wmesh->verts[edges[e0].v];
 		int e  = e0;
         int en = edges[edges[e].prev].adj;
+		float a=0;
 		do {
 			float3 &va = wmesh->verts[edges[edges[e ].adj].v];
 			float3 &vb = wmesh->verts[edges[edges[en].adj].v];
@@ -1676,6 +1676,7 @@ DataMesh *MakeSmoothMesh(WingMesh *wmesh)
 			en = edges[edges[e].prev].adj;
 		} while(e!=e0);
 		vertex.normal = safenormalize(vertex.normal);
+		vertex.orientation = RotationArc(float3(0,0,1),vertex.normal);
 		fullmesh->vertices.Add(vertex);
 	}
 	for(i=0;i<wmesh->fback.count;i++)

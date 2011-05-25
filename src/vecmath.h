@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include <math.h>
 #include <assert.h>
+#include <xmmintrin.h>
 
 #define M_PIf (3.1415926535897932384626433832795f)
 
@@ -49,128 +50,107 @@ T Min(const T &a,const T &b)
 	return (a<b)?a:b;
 }
 
+//for template normalize functions:
+inline float  squareroot(float  a){return sqrtf(a);}
+inline double squareroot(double a){return sqrt(a); }
+
 //----------------------------------
 
-class int3  
-{
-public:
-	int x,y,z;
-	int3(){};
-	int3(int _x,int _y, int _z){x=_x;y=_y;z=_z;}
-	const int& operator[](int i) const {return (&x)[i];}
-	int& operator[](int i) {return (&x)[i];}
-};
 
-inline int operator ==(const int3 &a,const int3 &b) {return (a.x==b.x && a.y==b.y && a.z==b.z);}
-
-class int4
-{
-public:
-	int x,y,z,w;
-	int4(){};
-	int4(int _x,int _y, int _z,int _w){x=_x;y=_y;z=_z;w=_w;}
-	const int& operator[](int i) const {return (&x)[i];}
-	int& operator[](int i) {return (&x)[i];}
-};
-
-class short3  
-{
-public:
-	short x,y,z;
-	short3(){};
-	short3(short _x,short _y, short _z){x=_x;y=_y;z=_z;}
-	const short& operator[](int i) const {return (&x)[i];}
-	short& operator[](int i) {return (&x)[i];}
-};
-
-inline int operator ==(const short3 &a,const short3 &b) {return (a.x==b.x && a.y==b.y && a.z==b.z);}
-
-
-class byte4
-{
-public:
-	unsigned char x,y,z,w;
-	unsigned char& operator[](int i)             {return ((unsigned char*)this)[i];}
-	const unsigned char& operator[](int i) const {return ((unsigned char*)this)[i];}
-};
 
 //-------- 2D --------
 
-class float2
+
+template<class T>
+class vec2
 {
-public:
-	float x,y;
-	float2(){x=0;y=0;};
-	float2(float _x,float _y){x=_x;y=_y;}
-	float& operator[](int i) {assert(i>=0&&i<2);return ((float*)this)[i];}
-	const float& operator[](int i) const {assert(i>=0&&i<2);return ((float*)this)[i];}
+ public:
+	T x,y;
+	__forceinline vec2(){x=0;y=0;}
+	__forceinline vec2(float _x,float _y){x=_x;y=_y;}
+	__forceinline T& operator[](int i) {return ((T*)this)[i];}
+	__forceinline const T& operator[](int i) const {return ((T*)this)[i];}
 };
-inline float2 operator-( const float2& a, const float2& b ){return float2(a.x-b.x,a.y-b.y);}
-inline float2 operator+( const float2& a, const float2& b ){return float2(a.x+b.x,a.y+b.y);}
+
+typedef vec2<int>     int2;
+typedef vec2<float>   float2;
+
+
+template<class T> __forceinline int operator ==(const vec2<T> &a,const vec2<T> &b) {return (a.x==b.x && a.y==b.y);}
+template<class T> __forceinline vec2<T> operator-( const vec2<T>& a, const vec2<T>& b ){return vec2<T>(a.x-b.x,a.y-b.y);}
+template<class T> __forceinline vec2<T> operator+( const vec2<T>& a, const vec2<T>& b ){return float2(a.x+b.x,a.y+b.y);}
 
 //--------- 3D ---------
 
-class double3;
-class float3 // 3D
+
+
+template<class T>
+class vec3
 {
-  public:
-	float x,y,z;
-	float3(){x=0;y=0;z=0;};
-	float3(float _x,float _y,float _z){x=_x;y=_y;z=_z;};
-	//operator float *() { return &x;};
-	float& operator[](int i) {assert(i>=0&&i<3);return ((float*)this)[i];}
-	const float& operator[](int i) const {assert(i>=0&&i<3);return ((float*)this)[i];}
-#	ifdef PLUGIN_3DSMAX
-	float3(const Point3 &p):x(p.x),y(p.y),z(p.z){}
-	operator Point3(){return *((Point3*)this);}
-#	endif
-	explicit float3(const double3 &p);
+ public:
+	T x,y,z;
+	__forceinline vec3(){x=0;y=0;z=0;};
+	__forceinline vec3(const T &_x,const T &_y,const T &_z){x=_x;y=_y;z=_z;};
+	__forceinline T& operator[](int i) {return ((T*)this)[i];}
+	__forceinline const T& operator[](int i) const {return ((T*)this)[i];}
 };
 
 
-float3& operator+=( float3 &a, const float3& b );
-float3& operator-=( float3 &a ,const float3& b );
-float3& operator*=( float3 &v ,const float s );
-float3& operator/=( float3 &v, const float s );
+typedef vec3<int>   int3;
+typedef vec3<short> short3;
+typedef vec3<float> float3;
 
-float  magnitude( const float3& v );
-float3 normalize( const float3& v );
+// due to ambiguity there is no overloaded operators for v3*v3 use dot,cross,outerprod,cmul 
+template<class T> __forceinline int operator==(const vec3<T> &a,const vec3<T> &b) {return (a.x==b.x && a.y==b.y && a.z==b.z);}
+template<class T> __forceinline int operator!=(const vec3<T> &a,const vec3<T> &b) {return !(a==b);}
+template<class T> __forceinline vec3<T> operator+(const vec3<T>& a, const vec3<T>& b ){return vec3<T>(a.x+b.x, a.y+b.y, a.z+b.z);}
+template<class T> __forceinline vec3<T> operator-(const vec3<T>& a, const vec3<T>& b ){return vec3<T>(a.x-b.x, a.y-b.y, a.z-b.z);}
+template<class T> __forceinline vec3<T> operator-(const vec3<T>& v){return vec3<T>(-v.x,-v.y,-v.z );}
+template<class T> __forceinline vec3<T> operator*(const vec3<T>& v, const T &s ){ return vec3<T>( v.x*s, v.y*s, v.z*s );}
+template<class T> __forceinline vec3<T> operator*(T s, const vec3<T>& v ){return v*s;}
+template<class T> __forceinline vec3<T> operator/(const vec3<T>& v, T s ){return vec3<T>( v.x/s, v.y/s, v.z/s );}
+template<class T> __forceinline T       dot  (const vec3<T>& a, const vec3<T>& b){return a.x*b.x + a.y*b.y + a.z*b.z;}
+template<class T> __forceinline vec3<T> cmul (const vec3<T>& a, const vec3<T>& b){return vec3<T>(a.x*b.x, a.y*b.y, a.z*b.z);}
+template<class T> __forceinline vec3<T> cross(const vec3<T>& a, const vec3<T>& b){return vec3<T>(a.y*b.z-a.z*b.y, a.z*b.x-a.x*b.z, a.x*b.y-a.y*b.x);}
+template<class T> __forceinline T        magnitude( const vec3<T>& v ){return squareroot(dot(v,v));}
+template<class T> __forceinline vec3<T>  normalize( const vec3<T>& v ){return v/magnitude(v);}
+template<class T> __forceinline vec3<T>& operator+=(vec3<T>& a, const vec3<T>& b){a.x+=b.x;a.y+=b.y;a.z+=b.z;return a;}
+template<class T> __forceinline vec3<T>& operator-=(vec3<T>& a, const vec3<T>& b){a.x-=b.x;a.y-=b.y;a.z-=b.z;return a;}
+template<class T> __forceinline vec3<T>& operator*=(vec3<T>& v, T s){v.x*=s;v.y*=s;v.z*= s;return v;}
+template<class T> __forceinline vec3<T>& operator/=(vec3<T>& v, T s){v.x/=s;v.y/=s;v.z/=s;return v;}
+
+
 float3 safenormalize(const float3 &v);
 float3 vabs(const float3 &v);
-float3 operator+( const float3& a, const float3& b );
-float3 operator-( const float3& a, const float3& b );
-float3 operator-( const float3& v );
-float3 operator*( const float3& v, const float s );
-float3 operator*( const float s, const float3& v );
-float3 operator/( const float3& v, const float s );
-inline int operator==( const float3 &a, const float3 &b ) { return (a.x==b.x && a.y==b.y && a.z==b.z); }
-inline int operator!=( const float3 &a, const float3 &b ) { return (a.x!=b.x || a.y!=b.y || a.z!=b.z); }
-// due to ambiguity and inconsistent standards ther are no overloaded operators for mult such as va*vb.
-float  dot( const float3& a, const float3& b );
-float3 cmul( const float3 &a, const float3 &b);
-float3 cross( const float3& a, const float3& b );
 float3 Interpolate(const float3 &v0,const float3 &v1,float alpha);
 float3 Round(const float3& a,float precision);
-void   BoxLimits(const float3 *verts,int verts_count, float3 &bmin_out,float3 &bmax_out);
-inline float3 VectorMin(const float3 &a,const float3 &b) {return float3(Min(a.x,b.x),Min(a.y,b.y),Min(a.z,b.z));}
-inline float3 VectorMax(const float3 &a,const float3 &b) {return float3(Max(a.x,b.x),Max(a.y,b.y),Max(a.z,b.z));}
+template<class T> __forceinline vec3<T>VectorMin(const  vec3<T> &a,const  vec3<T> &b) {return  vec3<T>(Min(a.x,b.x),Min(a.y,b.y),Min(a.z,b.z));}
+template<class T> __forceinline vec3<T>VectorMax(const  vec3<T> &a,const  vec3<T> &b) {return  vec3<T>(Max(a.x,b.x),Max(a.y,b.y),Max(a.z,b.z));}
 int overlap(const float3 &bmina,const float3 &bmaxa,const float3 &bminb,const float3 &bmaxb);
 
-
-class float3x3
+template <class T>
+class mat3x3
 {
   public:
-	float3 x,y,z;  // the 3 rows of the Matrix
-	float3x3(){}
-	float3x3(float xx,float xy,float xz,float yx,float yy,float yz,float zx,float zy,float zz):x(xx,xy,xz),y(yx,yy,yz),z(zx,zy,zz){}
-	float3x3(float3 _x,float3 _y,float3 _z):x(_x),y(_y),z(_z){}
-	float3&       operator[](int i)       {assert(i>=0&&i<3);return (&x)[i];}
-	const float3& operator[](int i) const {assert(i>=0&&i<3);return (&x)[i];}
-	float&        operator()(int r, int c)       {assert(r>=0&&r<3&&c>=0&&c<3);return ((&x)[r])[c];}
-	const float&  operator()(int r, int c) const {assert(r>=0&&r<3&&c>=0&&c<3);return ((&x)[r])[c];}
+	vec3<T> x,y,z;  // the 3 rows of the Matrix
+	__forceinline mat3x3(){}
+	__forceinline mat3x3(const T &xx,const T &xy,const T &xz,const T &yx,const T &yy,const T &yz,const T &zx,const T &zy,const T &zz):x(xx,xy,xz),y(yx,yy,yz),z(zx,zy,zz){}
+	__forceinline mat3x3(const vec3<T> &_x,const vec3<T> &_y,const vec3<T> &_z):x(_x),y(_y),z(_z){}
+	__forceinline vec3<T>&       operator[](int i)       {return (&x)[i];}
+	__forceinline const vec3<T>& operator[](int i) const {return (&x)[i];}
+	__forceinline T&        operator()(int r, int c)       {return ((&x)[r])[c];}
+	__forceinline const T&  operator()(int r, int c) const {return ((&x)[r])[c];}
 }; 
+typedef mat3x3<float> float3x3;
+
 float3x3 Transpose( const float3x3& m );
-float3   operator*( const float3& v  , const float3x3& m  );
+template<class T> vec3<T> operator*( const vec3<T>& v  , const mat3x3<T>& m  )
+{
+	return vec3<T>((m.x.x*v.x + m.y.x*v.y + m.z.x*v.z), 
+				  (m.x.y*v.x + m.y.y*v.y + m.z.y*v.z), 
+				  (m.x.z*v.x + m.y.z*v.y + m.z.z*v.z));
+}
+
 float3   operator*( const float3x3& m , const float3& v   );
 float3x3 operator*( const float3x3& m , const float& s   );
 float3x3 operator*( const float3x3& ma, const float3x3& mb );
@@ -186,54 +166,96 @@ float3x3 outerprod(const float3& a,const float3& b);
 
 //-------- 4D Math --------
 
-class float4
+template<class T>
+class vec4
 {
 public:
-	float x,y,z,w;
-	float4(){x=0;y=0;z=0;w=0;};
-	float4(float _x,float _y,float _z,float _w){x=_x;y=_y;z=_z;w=_w;}
-	float4(const float3 &v,float _w){x=v.x;y=v.y;z=v.z;w=_w;}
+	T x,y,z,w;
+	__forceinline vec4(){x=0;y=0;z=0;w=0;};
+	__forceinline vec4(const T &_x, const T &_y, const T &_z, const T &_w){x=_x;y=_y;z=_z;w=_w;}
+	__forceinline vec4(const vec3<T> &v,const T &_w){x=v.x;y=v.y;z=v.z;w=_w;}
 	//operator float *() { return &x;};
-	float& operator[](int i) {assert(i>=0&&i<4);return ((float*)this)[i];}
-	const float& operator[](int i) const {assert(i>=0&&i<4);return ((float*)this)[i];}
-	const float3& xyz() const { return *((float3*)this);}
-	float3&       xyz()       { return *((float3*)this);}
+	T& operator[](int i) {return ((T*)this)[i];}
+	const T& operator[](int i) const {return ((T*)this)[i];}
+	__forceinline const vec3<T>& xyz() const { return *((vec3<T>*)this);}
+	__forceinline vec3<T>&       xyz()       { return *((vec3<T>*)this);}
+	void *operator new[](size_t n);
+	void operator delete[](void *a);
 };
+
+/*
+template<>
+class   __declspec(intrin_type) _CRT_ALIGN(16)  vec4<float>
+{
+ public:
+	union  __declspec(intrin_type) _CRT_ALIGN(16)  {
+		__m128 d;
+		struct { float x,y,z,w; };
+	};
+	__forceinline vec4<float>(){x=0;y=0;z=0;w=0;};
+	__forceinline vec4<float>(const float &_x,const float &_y,const float &_z,const float &_w){x=_x;y=_y;z=_z;w=_w;};
+	__forceinline vec4(const vec3<float> &v,const float &_w){x=v.x;y=v.y;z=v.z;w=_w;}
+	__forceinline float& operator[](int i) {return ((float*)this)[i];}
+	__forceinline const float& operator[](int i) const {return ((float*)this)[i];}
+	__forceinline const vec3<float>& xyz() const { return *((vec3<float>*)this);}
+	__forceinline vec3<float>&       xyz()       { return *((vec3<float>*)this);}
+};
+*/
+
+typedef vec4<float> float4;
+typedef vec4<int>   int4;
+typedef vec4<unsigned char> byte4; 
+
+
+template<class T> __forceinline int operator==(const vec4<T> &a,const vec4<T> &b) {return (a.x==b.x && a.y==b.y && a.z==b.z && a.w==b.w);}
+template<class T> __forceinline int operator!=(const vec4<T> &a,const vec4<T> &b) {return !(a==b);}
+template<class T> __forceinline vec4<T> operator+(const vec4<T>& a, const vec4<T>& b ){return vec4<T>(a.x+b.x,a.y+b.y,a.z+b.z,a.w+b.w);}
+template<class T> __forceinline vec4<T> operator-(const vec4<T>& a, const vec4<T>& b ){return vec4<T>(a.x-b.x,a.y-b.y,a.z-b.z,a.w-b.w);}
+template<class T> __forceinline vec4<T> operator-(const vec4<T>& v){return vec4<T>(-v.x,-v.y,-v.z,-v.w);}
+template<class T> __forceinline vec4<T> operator*(const vec4<T>& v, const T &s ){ return vec4<T>( v.x*s, v.y*s, v.z*s,v.w*s);}
+template<class T> __forceinline vec4<T> operator*(T s, const vec4<T>& v ){return v*s;}
+template<class T> __forceinline vec4<T> operator/(const vec4<T>& v, T s ){return vec4<T>( v.x/s, v.y/s, v.z/s,v.w/s );}
+template<class T> __forceinline T         dot(const vec4<T>& a, const vec4<T>& b ){return a.x*b.x + a.y*b.y + a.z*b.z+a.w*b.w;}
+template<class T> __forceinline vec4<T>  cmul(const vec4<T> &a, const vec4<T> &b) {return vec4<T>(a.x*b.x, a.y*b.y, a.z*b.z,a.w*b.w);}
+template<class T> __forceinline vec4<T>& operator+=(vec4<T>& a, const vec4<T>& b ){a.x+=b.x;a.y+=b.y;a.z+=b.z;a.w+=b.w;return a;}
+template<class T> __forceinline vec4<T>& operator-=(vec4<T>& a, const vec4<T>& b ){a.x-=b.x;a.y-=b.y;a.z-=b.z;a.w-=b.w;return a;}
+template<class T> __forceinline vec4<T>& operator*=(vec4<T>& v, T s){v.x*=s;v.y*=s;v.z*=s;v.w*=s;return v;}
+template<class T> __forceinline vec4<T>& operator/=(vec4<T>& v, T s){v.x/=s;v.y/=s;v.z/=s;v.w/=s;return v;}
+template<class T> __forceinline T        magnitude( const vec4<T>& v ){return squareroot(dot(v,v));}
+template<class T> __forceinline vec4<T>  normalize( const vec4<T>& v ){return v/magnitude(v);}
+
 
 
 struct D3DXMATRIX; 
 
-class float4x4
+template<class T>
+class mat4x4
 {
   public:
-	float4 x,y,z,w;  // the 4 rows
-	float4x4(){}
-	float4x4(const float4 &_x, const float4 &_y, const float4 &_z, const float4 &_w):x(_x),y(_y),z(_z),w(_w){}
-	float4x4(float m00, float m01, float m02, float m03, 
-	          float m10, float m11, float m12, float m13, 
-			  float m20, float m21, float m22, float m23, 
-			  float m30, float m31, float m32, float m33 )
+	vec4<T> x,y,z,w;  // the 4 rows
+	__forceinline mat4x4(){}
+	__forceinline mat4x4(const vec4<T> &_x, const vec4<T> &_y, const vec4<T> &_z, const vec4<T> &_w):x(_x),y(_y),z(_z),w(_w){}
+	__forceinline mat4x4(const T& m00, const T& m01, const T& m02, const T& m03, 
+	         const T& m10, const T& m11, const T& m12, const T& m13, 
+			 const T& m20, const T& m21, const T& m22, const T& m23, 
+			 const T& m30, const T& m31, const T& m32, const T& m33 )
 			:x(m00,m01,m02,m03),y(m10,m11,m12,m13),z(m20,m21,m22,m23),w(m30,m31,m32,m33){}
-	float4&       operator[](int i)       {assert(i>=0&&i<4);return (&x)[i];}
-	const float4& operator[](int i) const {assert(i>=0&&i<4);return (&x)[i];}
-	float&       operator()(int r, int c)       {assert(r>=0&&r<4&&c>=0&&c<4);return ((&x)[r])[c];}
-	const float& operator()(int r, int c) const {assert(r>=0&&r<4&&c>=0&&c<4);return ((&x)[r])[c];}
-    operator       float* ()       {return &x.x;}
-    operator const float* () const {return &x.x;}
+	__forceinline vec4<T>&       operator[](int i)       {assert(i>=0&&i<4);return (&x)[i];}
+	__forceinline const vec4<T>& operator[](int i) const {assert(i>=0&&i<4);return (&x)[i];}
+	__forceinline T&       operator()(int r, int c)       {assert(r>=0&&r<4&&c>=0&&c<4);return ((&x)[r])[c];}
+	__forceinline const T& operator()(int r, int c) const {assert(r>=0&&r<4&&c>=0&&c<4);return ((&x)[r])[c];}
+    __forceinline operator       T* ()       {return &x.x;}
+    __forceinline operator const T* () const {return &x.x;}
 	operator       struct D3DXMATRIX* ()       { return (struct D3DXMATRIX*) this;}
 	operator const struct D3DXMATRIX* () const { return (struct D3DXMATRIX*) this;}
 };
 
+typedef mat4x4<float> float4x4;
 
-int     operator==( const float4 &a, const float4 &b );
 float4 Homogenize(const float3 &v3,const float &w=1.0f); // Turns a 3D float3 4D vector4 by appending w
-float4 cmul( const float4 &a, const float4 &b);
-float4 operator*( const float4 &v, float s);
-float4 operator*( float s, const float4 &v);
-float4 operator+( const float4 &a, const float4 &b);
-float4 operator-( const float4 &a, const float4 &b);
+
 float4x4 operator*( const float4x4& a, const float4x4& b );
-float4 operator*( const float4& v, const float4x4& m );
+float4   operator*( const float4& v, const float4x4& m );
 float4x4 Inverse(const float4x4 &m);
 float4x4 MatrixRigidInverse(const float4x4 &m);
 float4x4 MatrixTranspose(const float4x4 &m);
@@ -241,25 +263,63 @@ float4x4 MatrixPerspectiveFov(float fovy, float Aspect, float zn, float zf );
 float4x4 MatrixTranslation(const float3 &t);
 float4x4 MatrixRotationZ(const float angle_radians);
 float4x4 MatrixLookAt(const float3& eye, const float3& at, const float3& up);
-int     operator==( const float4x4 &a, const float4x4 &b );
+int      operator==( const float4x4 &a, const float4x4 &b );
 
 
 //-------- Quaternion ------------
 
-class Quaternion :public float4
+template<class T>
+class quaternion : public vec4<T>
 {
  public:
-	Quaternion() { x = y = z = 0.0f; w = 1.0f; }
-	Quaternion(float _x, float _y, float _z, float _w){x=_x;y=_y;z=_z;w=_w;}
-	float angle() const { return acosf(w)*2.0f; }
-	float3 axis() const { float3 a(x,y,z); if(fabsf(angle())<0.0000001f) return float3(1,0,0); return a*(1/sinf(angle()/2.0f)); }
-	float3 xdir() const { return float3( 1-2*(y*y+z*z),  2*(x*y+w*z),  2*(x*z-w*y) ); }
-	float3 ydir() const { return float3(   2*(x*y-w*z),1-2*(x*x+z*z),  2*(y*z+w*x) ); }
-	float3 zdir() const { return float3(   2*(x*z+w*y),  2*(y*z-w*x),1-2*(x*x+y*y) ); }
-	float3x3 getmatrix() const { return float3x3( xdir(), ydir(), zdir() ); }
+	__forceinline quaternion() { x = y = z = 0.0f; w = 1.0f; }
+	__forceinline quaternion(const T &_x, const T &_y, const T &_z, const T &_w){x=_x;y=_y;z=_z;w=_w;}
+	__forceinline explicit quaternion(const vec4<T> &v):vec4<T>(v){}
+	T angle() const { return acosf(w)*2.0f; }
+	vec3<T> axis() const { vec3<T> a(x,y,z); if(fabsf(angle())<0.0000001f) return vec3<T>(1,0,0); return a*(1/sinf(angle()/2.0f)); }
+	__forceinline vec3<T> xdir() const { return vec3<T>( 1-2*(y*y+z*z),  2*(x*y+w*z),  2*(x*z-w*y) ); }
+	__forceinline vec3<T> ydir() const { return vec3<T>(   2*(x*y-w*z),1-2*(x*x+z*z),  2*(y*z+w*x) ); }
+	__forceinline vec3<T> zdir() const { return vec3<T>(   2*(x*z+w*y),  2*(y*z-w*x),1-2*(x*x+y*y) ); }
+	__forceinline mat3x3<T> getmatrix() const { return mat3x3<T>( xdir(), ydir(), zdir() ); }
 	//operator float3x3() { return getmatrix(); }
 	void Normalize();
 };
+
+template<class T> 
+__forceinline quaternion<T> quatfrommat(const mat3x3<T> &m)
+{
+	T magw =  m[0 ][ 0] + m[1 ][ 1] + m[2 ][ 2];
+	T magxy;
+	T magzw;
+	vec3<T> pre;
+	vec3<T> prexy;
+	vec3<T> prezw;
+	quaternion<T> postxy;
+	quaternion<T> postzw;
+	quaternion<T> post;
+	int wvsz =  (magw  > m[2][2] ) ;
+	magzw  = (wvsz) ? magw : m[2][2];
+	prezw  = (wvsz) ? vec3<T>(1.0f,1.0f,1.0f)           : vec3<T>(-1.0f,-1.0f,1.0f) ;
+	postzw = (wvsz) ? quaternion<T>(0.0f,0.0f,0.0f,1.0f): quaternion<T>(0.0f,0.0f,1.0f,0.0f);
+	int xvsy = (m[0][0]>m[1][1]);
+	magxy  = (xvsy) ? m[0][0] : m[1][1];
+	prexy  = (xvsy) ? vec3<T>(1.0f,-1.0f,-1.0f)         : vec3<T>(-1.0f,1.0f,-1.0f) ;
+	postxy = (xvsy) ? quaternion<T>(1.0f,0.0f,0.0f,0.0f): quaternion<T>(0.0f,1.0f,0.0f,0.0f);
+	int zwvsxy = (magzw > magxy);
+	pre  = (zwvsxy) ? prezw  : prexy ;
+	post = (zwvsxy) ? postzw : postxy;
+
+	T t = pre.x * m[0 ][ 0] + pre.y * m[1 ][ 1] + pre.z * m[2 ][ 2] + 1.0f;
+	T s = 1/sqrt(t) * 0.5f;
+	quaternion<T> qp;
+	qp.x = ( pre.y * m[1][2] - pre.z * m[2][1] ) * s;
+	qp.y = ( pre.z * m[2][0] - pre.x * m[0][2] ) * s;
+	qp.z = ( pre.x * m[0][1] - pre.y * m[1][0] ) * s;
+	qp.w = t * s ;
+	return qp * post ;
+}
+
+typedef quaternion<float> Quaternion;
 
 inline Quaternion QuatFromAxisAngle(const float3 &_v, float angle_radians ) 
 { 
@@ -267,20 +327,37 @@ inline Quaternion QuatFromAxisAngle(const float3 &_v, float angle_radians )
 	return Quaternion(v.x,v.y,v.z,cosf(angle_radians/2.0f));
 }
 
-Quaternion& operator*=(Quaternion& a, float s );
-Quaternion	operator*( const Quaternion& a, float s );
-Quaternion	operator*( const Quaternion& a, const Quaternion& b);
-Quaternion	operator+( const Quaternion& a, const Quaternion& b );
-Quaternion	normalize( const Quaternion& a );
-float		dot( const Quaternion &a, const Quaternion &b );
+template<class T> __forceinline quaternion<T>  Conjugate(const quaternion<T>  &q){return quaternion<T>(-q.x,-q.y,-q.z,q.w);}
+template<class T> __forceinline quaternion<T>  Inverse(const quaternion<T>  &q){return Conjugate(q);}
+template<class T> __forceinline quaternion<T>  normalize( const quaternion<T> & a ){return quaternion<T> (normalize((vec4<T>&)a));}
+template<class T> __forceinline quaternion<T>& operator*=(quaternion<T>& a, T s ){return (quaternion<T>&)((vec4<T>&)a *=s);}
+template<class T> __forceinline quaternion<T>  operator*( const quaternion<T>& a, float s ){return quaternion<T>((vec4<T>&)a*s);}
+template<class T> __forceinline quaternion<T>  operator+( const quaternion<T>& a, const quaternion<T>& b){return quaternion<T>((vec4<T>&)a+(vec4<T>&)b);}
+template<class T> __forceinline quaternion<T>  operator-( const quaternion<T>& a, const quaternion<T>& b){return quaternion<T>((vec4<T>&)a-(vec4<T>&)b);}
+template<class T> __forceinline quaternion<T>  operator-( const quaternion<T>& b){return quaternion<T>(-(vec4<T>&)b);}
+template<class T> __forceinline quaternion<T>  operator*( const quaternion<T>& a, const quaternion<T>& b)
+{
+	return quaternion<T>(
+	  a.w*b.x + a.x*b.w + a.y*b.z - a.z*b.y,    //x
+	  a.w*b.y - a.x*b.z + a.y*b.w + a.z*b.x,    //y
+	  a.w*b.z + a.x*b.y - a.y*b.x + a.z*b.w,    //z
+	  a.w*b.w - a.x*b.x - a.y*b.y - a.z*b.z );  //w
+}
+
+
 float3		rotate( const Quaternion& q, const float3& v );
 //float3		operator*( const Quaternion& q, const float3& v );
 //float3		operator*( const float3& v, const Quaternion& q );
+
 Quaternion	slerp(const Quaternion &a, const Quaternion& b, float t );
 Quaternion  Interpolate(const Quaternion &q0,const Quaternion &q1,float t); 
 Quaternion  RotationArc(float3 v0, float3 v1 );  // returns quat q where q*v0*q^-1=v1
-Quaternion  Inverse(const Quaternion &q);
 float4x4    MatrixFromQuatVec(const Quaternion &q, const float3 &v);
+
+inline Quaternion QuatFromMat(const float3 &t, const float3 &b, const float3 &n)
+{
+	return normalize(quatfrommat<float>(float3x3(t,b,n)));
+}
 
 
 //---------------- Pose ------------------
@@ -327,7 +404,7 @@ inline float4x4 MatrixFromPose(const Pose &pose)
 Quaternion YawPitchRoll( float yaw, float pitch, float roll );
 float Yaw( const Quaternion& q );
 float Pitch( const Quaternion& q );
-float Roll( Quaternion q );
+float Roll( const Quaternion &q );
 float Yaw( const float3& v );
 float Pitch( const float3& v );
 
@@ -380,78 +457,9 @@ int     HitCheckPoly(const float3 *vert,const int n,const float3 &v0, const floa
 int     HitCheckRaySphere(const float3& sphereposition,float radius, const float3& _v0, const float3& _v1, float3 *impact,float3 *normal);
 int     HitCheckRayCylinder(const float3 &p0,const float3 &p1,float radius,const float3& _v0,const float3& _v1, float3 *impact,float3 *normal);
 int     HitCheckSweptSphereTri(const float3 &p0,const float3 &p1,const float3 &p2,float radius, const float3& v0,const float3& _v1, float3 *impact,float3 *normal);
+void    BoxLimits(const float3 *verts,int verts_count, float3 &bmin_out,float3 &bmax_out);
+void    BoxLimits(const float4 *verts,int verts_count, float3 &bmin_out,float3 &bmax_out);
 
-
-//--------------------- double --------------------------
-
-
-class double3
-{
-public:
-	double x,y,z;
-	double3(){}
-	double3(const double _x,const double _y,const double _z){x=_x;y=_y;z=_z;};
-	double3(const double3 &p){x=p.x;y=p.y;z=p.z;};
-	explicit double3(const float3 &p){x=p.x;y=p.y;z=p.z;};
-	double& operator[](int i) {return ((double*)this)[i];}
-	const double& operator[](int i) const {return ((double*)this)[i];}
-	//operator float3() { return float3((float)x,(float)y,(float)z);} 
-};
-
-inline float3::float3(const double3 &p){x=(float)p.x;y=(float)p.y;z=(float)p.z;}
-
-
-class double3x3
-{
-public:
-	double3 x,y,z;
-	double3x3(){}
-	double3x3(const double3 &_x, const double3 &_y,const double3 &_z){x=_x;y=_y;z=_z;}
-	double3& operator[](int i) {return ((double3*)this)[i];}
-	const double3& operator[](int i) const {return ((double3*)this)[i];}
-};
-
-double3  operator+ (const double3& a, const double3& b);
-double3  operator* (const double   s, const double3& b);
-double3& operator+=(      double3& a, const double3& b);
-double3& operator/=(      double3& v, const double s);
-double3& operator-=( double3 &a ,const double3& b );
-double3& operator*=( double3 &v ,const double s );
-double3  operator-( const double3& a, const double3& b );
-double3  operator-( const double3& v );
-double3  operator*( const double3& v, const double s );
-double3  operator*( const double s, const double3& v );
-double3  operator/( const double3& v, const double s );
-inline int operator==( const double3 &a, const double3 &b ) { return (a.x==b.x && a.y==b.y && a.z==b.z); }
-inline int operator!=( const double3 &a, const double3 &b ) { return (a.x!=b.x || a.y!=b.y || a.z!=b.z); }
-
-double  magnitude( const double3& v );
-double3 normalize( const double3& v );
-double3 safenormalize(const double3 &v);
-double3 vabs(const double3 &v);
-// due to ambiguity and inconsistent standards ther are no overloaded operators for mult such as va*vb.
-double  dot( const double3& a, const double3& b );
-double3 cmul( const double3 &a, const double3 &b);
-double3 cross( const double3& a, const double3& b );
-double3 Interpolate(const double3 &v0,const double3 &v1,double alpha);
-double3 Round(const double3& a,double precision);
-double3	VectorMax(const double3 &a, const double3 &b);
-double3	VectorMin(const double3 &a, const double3 &b);
-double3 TriNormal(const double3 &v0, const double3 &v1, const double3 &v2);
-
-double3x3 Transpose( const double3x3& m );
-double3   operator*( const double3& v  , const double3x3& m  );
-double3   operator*( const double3x3& m , const double3& v   );
-double3x3 operator*( const double3x3& m , const double& s   );
-double3x3 operator*( const double3x3& ma, const double3x3& mb );
-double3x3 operator/( const double3x3& a, const double& s ) ;
-double3x3 operator+( const double3x3& a, const double3x3& b );
-double3x3 operator-( const double3x3& a, const double3x3& b );
-double3x3 &operator+=( double3x3& a, const double3x3& b );
-double3x3 &operator-=( double3x3& a, const double3x3& b );
-double3x3 &operator*=( double3x3& a, const double& s );
-double    Determinant(const double3x3& m );
-double3x3 Inverse(const double3x3& a);  // its just 3x3 so we simply do that cofactor method
 
 template<class T>
 inline int maxdir(const T *p,int count,const T &dir)
