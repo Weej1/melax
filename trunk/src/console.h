@@ -1,5 +1,5 @@
 /*
- *              A Small Simple Console 
+ *              A Small Simple Interpreter and Binding System 
  *
  *           by Stan Melax (c) March 1998
  *           http://www.melax.com
@@ -41,63 +41,77 @@
 #include "stringmath.h"
 #include "object.h"
 
-class ConsoleVar{
-public:
-	ConsoleVar(char *_name,Reference r);
-};
-class ConsoleFnc{
-public:
-	ConsoleFnc(char *_name,String (*_func)(char *));
+
+struct ldeclare
+{
+	ldeclare(String cname,String mname,String tname,int offset);
 };
 
-#define EXPORTVAR(v) ConsoleVar ConV##v(#v,v);
-#define EXPORTFUNC(func) String CF##func(char *p){ return String(func(p));} ConsoleFnc ConF##func(#func,CF##func);
+inline String gettype(float3 &){return "float3";}
+inline String gettype(float &){return "float";}
+inline String gettype(int &){return "int";}
+inline String gettype(String &){return "string";}
+inline String gettype(float4 &){return "float4";}
+inline String gettype(float4x4 &){return "float4x4";}
 
-extern char *FuncInterp(const char *);  
-extern char *FuncPreInterp(const char *s);
-extern char *CommandCompletion(const char *name,Array<const char *> &match);
-Reference GetVar(String varname);
+#define LDECLARE(C,M) ldeclare  ldeclare_ ## C ## M (#C , #M , gettype( ((C*)NULL)-> M ) , OFFSET(C,M) );
 
-char *dofile(const char *filename);
+struct lobj;
+lobj* lexposer(String cname,String name,void *address);
 
-class Profile
+// WIP: contemplating using a class description system that's more explicit and thus less brittle from the c lang: 
+class ClassDesc
 {
 public:
-	//static Profile* current;
-	//Profile *parent;
-	__int64 start;
-	const char *name;
-	inline Profile(const char *_name):name(_name)
+	class Member
 	{
-		//parent=current;
-		//current=this;
-		__int64 _start;
-		__asm
-		{
-			cpuid;                // Force completion of out-of-order processing
-			rdtsc;                // Read timestamp counter
-			mov DWORD PTR [_start    ], eax;  // Copy counter value into variable
-			mov DWORD PTR [_start + 4], edx 
-		}
-		start=_start;
-	}
-	inline ~Profile()
-	{
-		__int64 finish;
-		__asm
-		{
-			cpuid;                // Force completion of out-of-order processing
-			rdtsc;                // Read timestamp counter
-			mov DWORD PTR [finish    ], eax;  // Copy counter value into variable
-			mov DWORD PTR [finish + 4], edx 
-		}
-		addrecord(name,(float) (finish-start));
-		//current=parent;
-	}
-	void addrecord(const char *name,float cycles);
+	public:
+		char mname[24];
+		int  offset;
+		ClassDesc *metaclass;
+		Member(){mname[0]='\0';}
+		Member(const char *s,int a,ClassDesc *c):offset(a),metaclass(c){assert(strlen(s)<24); strcpy_s<24>(mname,s);}
+	};
+	char cname[16];
+	Array<Member> members;
+	Member *FindMember(String m) {if(!this)return NULL;for(int i=0;i<members.count;i++)if(m==members[i].mname)return &members[i];return NULL;}
+	ClassDesc(){cname[0]='\0';}
+	ClassDesc(const char *s) {assert(strlen(s)<16); strcpy_s<16>(cname,s);}
 };
-void ProfileReset();
-#define PROFILE(n) Profile _pf ## n (#n);
+extern Array<ClassDesc*> Classes;
+extern ClassDesc* GetClass(String cname);
+void *deref(void *p,ClassDesc *cdesc,String m,ClassDesc *&memcdesc_out);
+inline void *deref(void *p,String cname,String m,String &memclass_out)
+{
+	ClassDesc *md=NULL;
+	void *a = deref(p,(p)?GetClass(cname):NULL,m,md);
+	memclass_out = (md)?md->cname:"";
+	return a;
+}
+
+class lexpose { public: lexpose(String cname,String name,void *address){ lexposer(cname,name,address);}}; // simply invoke function lexposer()
+#define LEXPOSEVAR(V) lexpose lexposevar_ ## V(gettype(V),#V,&V); // 
+#define LEXPOSEOBJECT(C,N) lexposer(#C, N , this);  // put this in an object's constuctor 
+
+
+
+
+
+class ConsoleFnc{
+public:
+	ConsoleFnc(char *_name,String (*_func)(String));
+};
+
+
+#define EXPORTVAR(v)  LEXPOSEVAR(v);
+#define EXPORTFUNC(func) String CF##func(String p){ return String(func(p));} ConsoleFnc ConF##func(#func,CF##func);
+
+extern String FuncInterp(const char *);  
+extern String FuncPreInterp(const char *s);
+extern char *CommandCompletion(const char *name,Array<String> &match);
+
+String cfg(const char *filename);
+
 
 #endif
 #endif
