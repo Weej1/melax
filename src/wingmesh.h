@@ -23,12 +23,24 @@
 // offer greater safety due to type checking.  For example, there's nothing to safeguard 
 // the programmer against using the id of an edge when indexing the vertex list.
 //
-
+//
+//  polymesh
+//
+// A basic polymesh class that matches the semantic used by maya, xsi, and collada. 
+// Whereas vrml uses -1 to delimit faces within the index list, the preferred standard
+// in the DCC community is to use another list with number-of-face elements that indicate
+// the number of sides of each face.
+//
+// The Polymesh data structure isn't very useful for mesh computation and is
+// only meant to provide a simple standard means to exchange polymesh information.
+// Passing PolyMesh or returning it from a function only does a shallow copy.
+// That is to make it convenient for returning a polymesh from a function.
+// That design decision could be revisited.
+//
 #ifndef WINGMESH_H
 #define WINGMESH_H
 
 #include <assert.h>
-#include "polymesh.h"
 #include "vecmath.h"
 
 class WingMesh;
@@ -106,7 +118,6 @@ class WingMesh: public Collidable
 WingMesh* Dual(WingMesh *m,float r=1.0f,const float3 &p=float3(0,0,0));
 WingMesh* WingMeshCreate(float3 *verts,int3 *tris,int n);
 WingMesh* WingMeshCreate(float3 *verts,int3 *tris,int n,int *hidden_edges,int hidden_edges_count);
-PolyMesh  WingMeshToPolyData(WingMesh *m);
 void      WingMeshDelete(WingMesh *m); 
 WingMesh *WingMeshDup(WingMesh *src);
 WingMesh *WingMeshCube(const float3 &bmin,const float3 &bmax);
@@ -123,5 +134,25 @@ float3    CenterOfMass(const Array<WingMesh*> &meshes);
 float     Volume(const Array<WingMesh*> &meshes);
 
 int       WingMeshToFaces(WingMesh *m,Array<Face*> &faces);
+
+
+
+class PolyMesh
+{
+public:
+	float3 *verts;
+	int verts_count;
+	int *indices;
+	int indices_count;
+	int *sides;
+	int sides_count;
+};
+
+void PolyMeshFree(PolyMesh &pm); // frees space allocated
+void PolyMeshAlloc(PolyMesh &pm,int _verts_count,int _indices_count, int _sides_count); // just allocates space 
+
+PolyMesh  WingMeshToPolyData(WingMesh *m);
+
+
 
 #endif
