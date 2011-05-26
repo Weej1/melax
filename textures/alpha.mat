@@ -1,0 +1,6 @@
+﻿<?xml version="1.0" encoding="utf-8" ?> 
+<materialdef>
+	   <effect>alpha.fx</effect>
+	   <diffusemap>default</diffusemap>
+</materialdef> 
+

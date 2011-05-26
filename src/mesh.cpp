@@ -478,11 +478,11 @@ void ModelAnimate(Model *model,float t)
 		if(b->parent)
 		{
 			Quaternion qb,qp;
-			extern int track_bone(const char* name,Quaternion &q);
-			if(track_bone(b->id,qb)&&track_bone(b->parent->id,qp))
-			{
-				b->orientation = Inverse(qp) * qb;	
-			}
+			//extern int track_bone(const char* name,Quaternion &q);
+			//if(track_bone(b->id,qb)&&track_bone(b->parent->id,qp))
+			//{
+			//	b->orientation = Inverse(qp) * qb;	
+			//}
 		}
 		b->modelpose = (b->parent)? b->parent->modelpose * b->pose() : b->pose() ;
 		Pose p = b->modelpose * Inverse( b->basepose );

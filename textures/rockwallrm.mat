@@ -1,0 +1,7 @@
+﻿<?xml version="1.0" encoding="utf-8" ?> 
+<materialdef>
+	   <effect>parallax.fx</effect>
+	   <diffusemap>rockwallrm</diffusemap>
+	   <normalmap>rockwallrm_n.png</normalmap>
+</materialdef> 
+

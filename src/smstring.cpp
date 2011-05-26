@@ -193,12 +193,12 @@ String::~String()
 
 int String::Asint() const{
 	int a=0;
-	sscanf(*this,"%d",&a);
+	sscanf_s(*this,"%d",&a);
 	return a;
 }
 float String::Asfloat() const{
 	float f=0.0f;
-	sscanf(*this,"%f",&f);
+	sscanf_s(*this,"%f",&f);
 	return f;
 }
 
@@ -385,10 +385,10 @@ String PopLastWord(String &line) {
 	while(s>(const char*)line && IsOneOf(*(s-1)," \t")){
 		s--;
 	}
-	line[s-(const char *)line] ='\0';
+	line.operator[](s-(const char *)line) ='\0';
 	return String(f.element);		
 }
-
+ 
 String ToLower(const char *b)
 {
 	String s(b);

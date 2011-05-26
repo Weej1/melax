@@ -1,0 +1,6 @@
+﻿<?xml version="1.0" encoding="utf-8" ?> 
+<materialdef name="default">
+	   <effect>default.fx</effect>
+	   <diffusemap>default</diffusemap>
+</materialdef> 
+

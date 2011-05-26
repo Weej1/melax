@@ -245,11 +245,6 @@ int WINAPI WinMain( HINSTANCE hInst, HINSTANCE, LPSTR arg, int )
 
 		if(!spinnav && camera.position!=v1) { spinpoint = v1;}
 
-		extern void bodytrackrender (void);
-		bodytrackrender();  // actually this just gets the pose and does a debug wire frame draw
-
-		void do_pmd_update();
-		do_pmd_update();
 
 		extern void DoCharacters();
 		DoCharacters();
@@ -262,9 +257,6 @@ int WINAPI WinMain( HINSTANCE hInst, HINSTANCE, LPSTR arg, int )
 
 		// do attachement updates here!
 
-		extern void DoCloths();
-		DoCloths();
-
 		extern void AreaAggregate();
 		AreaAggregate();
 
@@ -273,8 +265,6 @@ int WINAPI WinMain( HINSTANCE hInst, HINSTANCE, LPSTR arg, int )
 		//ProfileReset();
 
 	}
-	extern void pmd_close();
-	pmd_close();
 	SoundClose();
 	ShutDown();
 	return 0;

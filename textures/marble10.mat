@@ -1,0 +1,8 @@
+﻿<?xml version="1.0" encoding="utf-8" ?> 
+<materialdef>
+	   <effect>default.fx</effect>
+	   <diffusemap>marble10</diffusemap>
+	   <gloss>0.25</gloss>
+	   <emissive>0 0 0 </emissive>
+</materialdef> 
+
