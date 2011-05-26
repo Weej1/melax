@@ -3,14 +3,9 @@
 //
 // More convenient than using character arrays (char*). 
 // Its your typical String class - nuff said.
-// This is a general use class.
+// This is a general use class.  Not NovodeX specific.
 // This file has no dependancies on any other data types.
-// 
-// The cool thing about these strings is you can return them
-// from functions without incurring a copy.  Its copy-on-modify.
-// many string objects point to the same char* until a non-const 
-// member function is called.  Then the to-be-modified string
-// makes its own copy and detaches from its siblings.
+//
 //
 
 #ifndef SM_STRING_H
@@ -46,6 +41,7 @@ class String
 	int			Asint() const;
 	float		Asfloat() const;
 	int			Length() const {return length;}
+	int			correctlength(){if(buf)length=(int)strlen(buf);return length;}
 private:
 	char		*buf;
 	int			length; // strlen
@@ -60,20 +56,26 @@ String operator+(const String &a,const String &b);
 inline String &operator+=(String &s,float a)
 {
 	char buf[128];
-	sprintf(buf,"%g",a);
+	sprintf_s(buf,sizeof(buf),"%g",a);
 	return s+=buf;
 }
 
 inline String &operator+=(String &s,int a)
 {
 	char buf[32];
-	sprintf(buf,"%d",a);
+	sprintf_s(buf,sizeof(buf),"%d",a);
+	return s+=buf;
+}
+inline String &operator+=(String &s,char a)
+{
+	char buf[32];
+	sprintf_s(buf,sizeof(buf),"%c",a);
 	return s+=buf;
 }
 inline String &operator+=(String &s,unsigned int a)
 {
 	char buf[32];
-	sprintf(buf,"%d",a);
+	sprintf_s(buf,sizeof(buf),"%d",a);
 	return s+=buf;
 }
 template<class T>

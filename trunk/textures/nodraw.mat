@@ -1,0 +1,7 @@
+﻿<?xml version="1.0" encoding="utf-8" ?> 
+<materialdef name="nodraw">
+	   <effect>default.fx</effect>
+	   <diffusemap>nodraw.jpg</diffusemap>
+	   <draw>0</draw>
+</materialdef> 
+

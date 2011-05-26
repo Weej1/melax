@@ -1,0 +1,553 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{686EB3F8-0724-4B0B-9618-5451CA23CD17}</ProjectGuid>
+    <RootNamespace>insert_game_title_here</RootNamespace>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseOfMfc>false</UseOfMfc>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseOfMfc>false</UseOfMfc>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseOfMfc>false</UseOfMfc>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseOfMfc>false</UseOfMfc>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" />
+    <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC71.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" />
+    <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC71.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" />
+    <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC71.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" />
+    <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC71.props" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <_ProjectFileVersion>10.0.21006.1</_ProjectFileVersion>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">.\Release\</IntDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">.\Release\</IntDir>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</LinkIncremental>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">.\Debug\</IntDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">.\Debug\</IntDir>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</LinkIncremental>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\</OutDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\</OutDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">..\</OutDir>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(ProjectName)_debug</TargetName>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Midl>
+      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <MkTypLibCompatible>true</MkTypLibCompatible>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <TargetEnvironment>Win32</TargetEnvironment>
+      <TypeLibraryName>.\teaparty/teaparty.tlb</TypeLibraryName>
+    </Midl>
+    <ClCompile>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <AdditionalIncludeDirectories>$(DXSDK_DIR)\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <StringPooling>true</StringPooling>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <FloatingPointModel>Fast</FloatingPointModel>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <AssemblerListingLocation>.\Release/</AssemblerListingLocation>
+      <ObjectFileName>.\Release/</ObjectFileName>
+      <ProgramDataBaseFileName>.\Release/</ProgramDataBaseFileName>
+      <BrowseInformation>true</BrowseInformation>
+      <WarningLevel>Level3</WarningLevel>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <Culture>0x0409</Culture>
+    </ResourceCompile>
+    <Link>
+      <AdditionalOptions>/MACHINE:I386 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalDependencies>shlwapi.lib;d3d9.lib;d3dx9.lib;winmm.lib;dsound.lib;dxerr.lib;dxguid.lib;Ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <AdditionalLibraryDirectories>$(DXSDK_DIR)\lib\x86;$(OPEN_NI_INSTALL_PATH)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
+      <IgnoreSpecificDefaultLibraries>%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Windows</SubSystem>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
+      <DataExecutionPrevention>
+      </DataExecutionPrevention>
+      <OutputFile>../insert_game_title_here.exe</OutputFile>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Midl>
+      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <MkTypLibCompatible>true</MkTypLibCompatible>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <TypeLibraryName>.\teaparty/teaparty.tlb</TypeLibraryName>
+    </Midl>
+    <ClCompile>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <AdditionalIncludeDirectories>$(DXSDK_DIR)\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <StringPooling>true</StringPooling>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <FloatingPointModel>Fast</FloatingPointModel>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <AssemblerListingLocation>.\Release/</AssemblerListingLocation>
+      <ObjectFileName>.\Release/</ObjectFileName>
+      <ProgramDataBaseFileName>.\Release/</ProgramDataBaseFileName>
+      <BrowseInformation>true</BrowseInformation>
+      <WarningLevel>Level3</WarningLevel>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
+      <AdditionalOptions>/arch:AVX %(AdditionalOptions)</AdditionalOptions>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <Culture>0x0409</Culture>
+    </ResourceCompile>
+    <Link>
+      <AdditionalOptions>/MACHINE:I386 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalDependencies>shlwapi.lib;d3d9.lib;d3dx9.lib;winmm.lib;dsound.lib;dxerr.lib;dxguid.lib;Ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <AdditionalLibraryDirectories>$(DXSDK_DIR)\lib\x86;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
+      <IgnoreSpecificDefaultLibraries>%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Windows</SubSystem>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
+      <DataExecutionPrevention>
+      </DataExecutionPrevention>
+      <OutputFile>../insert_game_title_here_x64.exe</OutputFile>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Midl>
+      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <MkTypLibCompatible>true</MkTypLibCompatible>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <TargetEnvironment>Win32</TargetEnvironment>
+      <TypeLibraryName>.\Debug/teaparty.tlb</TypeLibraryName>
+    </Midl>
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <AdditionalIncludeDirectories>$(DXSDK_DIR)\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <PrecompiledHeaderOutputFile>.\Debug/teaparty.pch</PrecompiledHeaderOutputFile>
+      <AssemblerListingLocation>.\Debug/</AssemblerListingLocation>
+      <ObjectFileName>.\Debug/</ObjectFileName>
+      <ProgramDataBaseFileName>.\Debug/</ProgramDataBaseFileName>
+      <BrowseInformation>true</BrowseInformation>
+      <WarningLevel>Level3</WarningLevel>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <CompileAs>Default</CompileAs>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <Culture>0x0409</Culture>
+    </ResourceCompile>
+    <Link>
+      <AdditionalOptions>/MACHINE:I386 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalDependencies>shlwapi.lib;odbc32.lib;odbccp32.lib;d3d9.lib;d3dx9.lib;winmm.lib;dsound.lib;dxerr.lib;dxguid.lib;Ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <AdditionalLibraryDirectories>$(DXSDK_DIR)\Lib\x86;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
+      <IgnoreSpecificDefaultLibraries>%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Windows</SubSystem>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
+      <DataExecutionPrevention>
+      </DataExecutionPrevention>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Midl>
+      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <MkTypLibCompatible>true</MkTypLibCompatible>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <TypeLibraryName>.\Debug/teaparty.tlb</TypeLibraryName>
+    </Midl>
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <AdditionalIncludeDirectories>$(DXSDK_DIR)\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <PrecompiledHeaderOutputFile>.\Debug/teaparty.pch</PrecompiledHeaderOutputFile>
+      <AssemblerListingLocation>.\Debug/</AssemblerListingLocation>
+      <ObjectFileName>.\Debug/</ObjectFileName>
+      <ProgramDataBaseFileName>.\Debug/</ProgramDataBaseFileName>
+      <BrowseInformation>true</BrowseInformation>
+      <WarningLevel>Level3</WarningLevel>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <CompileAs>Default</CompileAs>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <Culture>0x0409</Culture>
+    </ResourceCompile>
+    <Link>
+      <AdditionalOptions>/MACHINE:I386 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalDependencies>shlwapi.lib;odbc32.lib;odbccp32.lib;d3d9.lib;d3dx9.lib;winmm.lib;dsound.lib;dxerr.lib;dxguid.lib;Ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <AdditionalLibraryDirectories>$(DXSDK_DIR)\Lib\x86;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
+      <IgnoreSpecificDefaultLibraries>%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Windows</SubSystem>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
+      <DataExecutionPrevention>
+      </DataExecutionPrevention>
+      <OutputFile>../insert_game_title_here_x64_debug.exe</OutputFile>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <CustomBuild Include="..\effects\alpha.fx">
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+set FXC=$(DXSDK_DIR)\Utilities\bin\x86\FXC.EXE
+
+echo Compiling fx file 
+set command="%FXC%" ..\effects\%(Filename).fx /Tfx_2_0  /Fo ..\effects\%(Filename).fxo
+echo %command%
+%command%
+</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+set FXC=$(DXSDK_DIR)\Utilities\bin\x86\FXC.EXE
+
+echo Compiling fx file 
+set command="%FXC%" ..\effects\%(Filename).fx /Tfx_2_0  /Fo DEBUG\%(Filename).fxo
+echo %command%
+%command%
+</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">..\effects\%(FileName).fxo</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">DEBUG\%(FileName).fxo</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">..\effects\%(FileName).fx</AdditionalInputs>
+    </CustomBuild>
+    <CustomBuild Include="..\effects\default.fx">
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+set FXC=$(DXSDK_DIR)\Utilities\bin\x86\FXC.EXE
+
+echo Compiling fx file
+set command="%FXC%" ..\effects\%(Filename).fx /Tfx_2_0  /Fo  ..\effects\%(Filename).fxo
+echo %command%
+%command%
+</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+set FXC=$(DXSDK_DIR)\Utilities\bin\x86\FXC.EXE
+
+echo Compiling fx file
+set command="%FXC%" ..\effects\%(Filename).fx /Tfx_2_0  /Fo DEBUG\%(Filename).fxo
+echo %command%
+%command%
+</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">..\effects\%(FileName).fxo</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">DEBUG\%(FileName).fxo</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">..\effects\%(FileName).fx</AdditionalInputs>
+    </CustomBuild>
+    <CustomBuild Include="..\effects\extendvolume.fx">
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+set FXC=$(DXSDK_DIR)\Utilities\bin\x86\FXC.EXE
+
+echo Compiling fx file
+set command="%FXC%" ..\effects\%(Filename).fx /Tfx_2_0  /Fo ..\effects\%(Filename).fxo
+echo %command%
+%command%
+</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+set FXC=$(DXSDK_DIR)\Utilities\bin\x86\FXC.EXE
+
+echo Compiling fx file
+set command="%FXC%" ..\effects\%(Filename).fx /Tfx_2_0  /Fo DEBUG\%(Filename).fxo
+echo %command%
+%command%
+</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">..\effects\%(FileName).fxo</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">DEBUG\%(FileName).fxo</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">..\effects\%(FileName).fx</AdditionalInputs>
+    </CustomBuild>
+    <CustomBuild Include="..\effects\font.fx">
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+set FXC=$(DXSDK_DIR)\Utilities\bin\x86\FXC.EXE
+
+echo Compiling fx file
+set command="%FXC%" ..\effects\%(Filename).fx /Tfx_2_0  /Fo ..\effects\%(Filename).fxo
+echo %command%
+%command%
+</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+set FXC=$(DXSDK_DIR)\Utilities\bin\x86\FXC.EXE
+
+echo Compiling fx file
+set command="%FXC%" ..\effects\%(Filename).fx /Tfx_2_0  /Fo DEBUG\%(Filename).fxo
+echo %command%
+%command%
+</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">..\effects\%(FileName).fxo</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">DEBUG\%(FileName).fxo</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">..\effects\%(FileName).fx</AdditionalInputs>
+    </CustomBuild>
+    <CustomBuild Include="..\effects\highlight.fx">
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+set FXC=$(DXSDK_DIR)\Utilities\bin\x86\FXC.EXE
+
+echo Compiling fx file
+set command="%FXC%" ..\effects\%(Filename).fx /Tfx_2_0  /Fo ..\effects\%(Filename).fxo
+echo %command%
+%command%
+</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+set FXC=$(DXSDK_DIR)\Utilities\bin\x86\FXC.EXE
+
+echo Compiling fx file
+set command="%FXC%" ..\effects\%(Filename).fx /Tfx_2_0  /Fo DEBUG\%(Filename).fxo
+echo %command%
+%command%
+</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">..\effects\%(FileName).fxo</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">DEBUG\%(FileName).fxo</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">..\effects\%(FileName).fx</AdditionalInputs>
+    </CustomBuild>
+    <CustomBuild Include="..\effects\marker.fx">
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+set FXC=$(DXSDK_DIR)\Utilities\bin\x86\FXC.EXE
+
+echo Compiling fx file
+set command="%FXC%" ..\effects\%(Filename).fx /Tfx_2_0  /Fo ..\effects\%(Filename).fxo
+echo %command%
+%command%
+</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+set FXC=$(DXSDK_DIR)\Utilities\bin\x86\FXC.EXE
+
+echo Compiling fx file
+set command="%FXC%" ..\effects\%(Filename).fx /Tfx_2_0  /Fo DEBUG\%(Filename).fxo
+echo %command%
+%command%
+</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">..\effects\%(FileName).fxo</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">DEBUG\%(FileName).fxo</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">..\effects\%(FileName).fx</AdditionalInputs>
+    </CustomBuild>
+    <CustomBuild Include="..\effects\quat_vs_mat.fx">
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+set FXC=$(DXSDK_DIR)\Utilities\bin\x86\FXC.EXE
+
+echo Compiling fx file
+set command="%FXC%" ..\effects\%(Filename).fx /Tfx_2_0  /Fo ..\effects\%(Filename).fxo
+echo %command%
+%command%
+</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+set FXC=$(DXSDK_DIR)\Utilities\bin\x86\FXC.EXE
+
+echo Compiling fx file
+set command="%FXC%" ..\effects\%(Filename).fx /Tfx_2_0  /Fo DEBUG\%(Filename).fxo
+echo %command%
+%command%
+</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">..\effects\%(FileName).fxo</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">DEBUG\%(FileName).fxo</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">..\effects\%(FileName).fx</AdditionalInputs>
+    </CustomBuild>
+    <CustomBuild Include="..\effects\wireframe.fx">
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+set FXC=$(DXSDK_DIR)\Utilities\bin\x86\FXC.EXE
+
+echo Compiling fx file
+set command="%FXC%" ..\effects\%(Filename).fx /Tfx_2_0  /Fo ..\effects\%(Filename).fxo
+echo %command%
+%command%
+</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+set FXC=$(DXSDK_DIR)\Utilities\bin\x86\FXC.EXE
+
+echo Compiling fx file
+set command="%FXC%" ..\effects\%(Filename).fx /Tfx_2_0  /Fo DEBUG\%(Filename).fxo
+echo %command%
+%command%
+</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">..\effects\%(FileName).fxo</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">DEBUG\%(FileName).fxo</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">..\effects\%(FileName).fx</AdditionalInputs>
+    </CustomBuild>
+    <None Include="..\bodytrack.cfg" />
+    <None Include="..\effects\common.fxh" />
+    <CustomBuild Include="..\effects\parallax.fx">
+      <Command Condition="'$(Configuration)|$(Platform)'=='release64|x64'">       set FXC="C:\Program Files (x86)\Microsoft DirectX SDK (June 2010)\Utilities\bin\x86\FXC.EXE"
+       echo compiling vertex_shader
+       set EFFECT=$(InputName)
+       set command=%FXC% ../effects/parallax.fx /T vs_2_0 /E vertex_shader /Fc DEBUG\parallax_vs.txt
+       echo %command%
+       %command%
+       echo Compiling pixel_shader
+       set command=%FXC% ../effects/parallax.fx /T ps_2_0 /E pixel_shader_light /Fc DEBUG\parallax_ps.txt
+       echo %command%
+       %command%</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='release64|x64'">DEBUG\%EFFECT%_ps.txt</Outputs>
+      <FileType>Document</FileType>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">..\effects\%(FileName).fxo</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">..\effects\%(FileName).fx</AdditionalInputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+set FXC=$(DXSDK_DIR)\Utilities\bin\x86\FXC.EXE
+
+echo Compiling fx file
+set command="%FXC%" ..\effects\%(Filename).fx /Tfx_2_0  /Fo  ..\effects\%(Filename).fxo
+echo %command%
+%command%
+</Command>
+    </CustomBuild>
+    <CustomBuild Include="..\effects\singlepass.fx">
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+set FXC=$(DXSDK_DIR)\Utilities\bin\x86\FXC.EXE
+
+echo Compiling fx file
+set command="%FXC%" ..\effects\%(Filename).fx /Tfx_2_0  /Fo ..\effects\%(Filename).fxo
+echo %command%
+%command%
+</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">..\effects\%(FileName).fxo</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">..\effects\%(FileName).fx</AdditionalInputs>
+    </CustomBuild>
+    <None Include="..\Melax3DE.cfg" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\src\array.h" />
+    <ClInclude Include="..\src\brush.h" />
+    <ClInclude Include="..\src\bsp.h" />
+    <ClInclude Include="..\src\camera.h" />
+    <ClInclude Include="..\src\chuckable.h" />
+    <ClInclude Include="..\src\console.h" />
+    <ClInclude Include="..\src\d3dfont.h" />
+    <ClInclude Include="..\src\hash.h" />
+    <ClInclude Include="..\src\light.h" />
+    <ClInclude Include="..\src\manipulator.h" />
+    <ClInclude Include="..\src\manipulatori.h" />
+    <ClInclude Include="..\src\material.h" />
+    <ClInclude Include="..\src\mesh.h" />
+    <ClInclude Include="..\src\object.h" />
+    <ClInclude Include="..\src\physics.h" />
+    <ClInclude Include="..\src\qplane.h" />
+    <ClInclude Include="..\src\resource.h" />
+    <ClInclude Include="..\src\smstring.h" />
+    <ClInclude Include="..\src\sound.h" />
+    <ClInclude Include="..\src\stringclass.h" />
+    <ClInclude Include="..\src\stringmath.h" />
+    <ClInclude Include="..\src\vec3n.h" />
+    <ClInclude Include="..\src\vecmath.h" />
+    <ClInclude Include="..\src\vertex.h" />
+    <ClInclude Include="..\src\wingmesh.h" />
+    <ClInclude Include="..\src\winsetup.h" />
+    <ClInclude Include="..\src\xmlparse.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\src\area.cpp" />
+    <ClCompile Include="..\src\bediter.cpp" />
+    <ClCompile Include="..\src\brush.cpp" />
+    <ClCompile Include="..\src\bsp.cpp" />
+    <ClCompile Include="..\src\bspcollide.cpp" />
+    <ClCompile Include="..\src\bspmerge.cpp" />
+    <ClCompile Include="..\src\camera.cpp" />
+    <ClCompile Include="..\src\chuckable.cpp" />
+    <ClCompile Include="..\src\console.cpp" />
+    <ClCompile Include="..\src\face.cpp" />
+    <ClCompile Include="..\src\font.cpp" />
+    <ClCompile Include="..\src\gjk.cpp" />
+    <ClCompile Include="..\src\hull.cpp" />
+    <ClCompile Include="..\src\kobbelt.cpp" />
+    <ClCompile Include="..\src\light.cpp" />
+    <ClCompile Include="..\src\main.cpp" />
+    <ClCompile Include="..\src\manipulator.cpp" />
+    <ClCompile Include="..\src\material.cpp" />
+    <ClCompile Include="..\src\mesh.cpp" />
+    <ClCompile Include="..\src\network.cpp" />
+    <ClCompile Include="..\src\object.cpp" />
+    <ClCompile Include="..\src\physics.cpp" />
+    <ClCompile Include="..\src\playernav.cpp" />
+    <ClCompile Include="..\src\qplane.cpp" />
+    <ClCompile Include="..\src\render.cpp" />
+    <ClCompile Include="..\src\smstring.cpp" />
+    <ClCompile Include="..\src\soundu.cpp" />
+    <ClCompile Include="..\src\stringmath.cpp" />
+    <ClCompile Include="..\src\tunneling.cpp" />
+    <ClCompile Include="..\src\vec3n.cpp" />
+    <ClCompile Include="..\src\vecmath.cpp" />
+    <ClCompile Include="..\src\wingmesh.cpp" />
+    <ClCompile Include="..\src\winsetup.cpp" />
+    <ClCompile Include="..\src\xmlparse.cpp" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

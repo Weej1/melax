@@ -615,10 +615,10 @@ void Character::Drive()
 		{
 			Quaternion qb,qp;
 			extern int track_bone(const char* name,Quaternion &q);
-			if(track_bone(b->id,qb)&&track_bone(b->parent->id,qp))
-			{
-				qdrive = Inverse(qp) * qb;	
-			}
+			//if(track_bone(b->id,qb)&&track_bone(b->parent->id,qp))
+			//{
+			//	qdrive = Inverse(qp) * qb;	
+			//}
 		}
 
 		extern void createdrive(RigidBody *rb0,RigidBody *rb1,Quaternion target,float maxtorque);

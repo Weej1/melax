@@ -528,10 +528,10 @@ void SceneRender()
 		RenderChuckables();
 		
 		extern void RenderCloths();
-		RenderCloths();
+		//RenderCloths();
 
 		extern void renderblob();
-		renderblob();
+		//renderblob();
 
 		ManipulatorRender();
 

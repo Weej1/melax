@@ -331,13 +331,13 @@ void Player::move()
 
 	groundcontact=NULL;
 
-	extern int blobnav(float r,float h,const float3 &_v0,const float3 &_v1,float3 *impact);
-	if(blobnav(radius,height,position,positionnew,&positionnew))
-	{
-		velocity = (positionnew-position)/DeltaT;
-		groundcontact = currentroom;  // so I can jump.
-		groundnormal = float3(0,0,1.0f);
-	}
+	//extern int blobnav(float r,float h,const float3 &_v0,const float3 &_v1,float3 *impact);
+	//if(blobnav(radius,height,position,positionnew,&positionnew))
+	//{
+	//	velocity = (positionnew-position)/DeltaT;
+	//	groundcontact = currentroom;  // so I can jump.
+	//	groundnormal = float3(0,0,1.0f);
+	//}
 
 	for(int i=0;i<Brushes.count;i++)
 	{

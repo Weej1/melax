@@ -1,0 +1,6 @@
+﻿<?xml version="1.0" encoding="utf-8" ?> 
+<materialdef name="font">
+	   <effect>font.fx</effect>
+	   <diffusemap>font</diffusemap>
+</materialdef> 
+

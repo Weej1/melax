@@ -22,7 +22,7 @@
 // we can add elements to a non constructed global hash, and delete elements from such a 
 // deconstructed hash.  This is because the order that globals are constructed isn't known
 // across different modules.
-//
+// 
 
 #ifndef SM_HASH_H
 #define SM_HASH_H
@@ -128,7 +128,16 @@ class Hash
 		if(!slots[k].used) return;
 		slots[k].used =0;
 		keys_count--;
-		Rehash(slots_count);
+		// Rehash(slots_count);
+		// instead of a complete rehash, we can just go in order and rehash all the following until we find an existing gap (note have to keep going even if we make a gap)
+		k=(k+1)%slots_count;
+		while(slots[k].used)
+		{
+			keys_count--;
+			slots[k].used=0;
+			(*this)[slots[k].key] = slots[k].value;
+			k=(k+1)%slots_count;
+		}
 	}
 	Hash(int _slots_count=31){if(_slots_count<0)return;keys_count=0;slots_count=_slots_count;slots=(slots_count)?new HashEntry<K,T>[slots_count]:NULL;collision_count=0;}
 	~Hash(){delete []slots;slots_count=0;}
