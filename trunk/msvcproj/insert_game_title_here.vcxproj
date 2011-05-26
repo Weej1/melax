@@ -467,19 +467,6 @@ echo %command%
 %command%
 </Command>
     </CustomBuild>
-    <CustomBuild Include="..\effects\singlepass.fx">
-      <FileType>Document</FileType>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-set FXC=$(DXSDK_DIR)\Utilities\bin\x86\FXC.EXE
-
-echo Compiling fx file
-set command="%FXC%" ..\effects\%(Filename).fx /Tfx_2_0  /Fo ..\effects\%(Filename).fxo
-echo %command%
-%command%
-</Command>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">..\effects\%(FileName).fxo</Outputs>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">..\effects\%(FileName).fx</AdditionalInputs>
-    </CustomBuild>
     <None Include="..\Melax3DE.cfg" />
   </ItemGroup>
   <ItemGroup>
