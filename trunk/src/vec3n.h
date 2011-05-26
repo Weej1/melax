@@ -37,16 +37,33 @@
 #include "vecmath.h"
 #include "array.h"
 
+//#include <malloc.h>
+//template <class T> void * vec4<T>::operator new[](size_t n){ return _mm_malloc(n,64); }
+//template <class T> void vec4<T>::operator delete[](void *a) { _mm_free(a); }
+
+
+struct HalfConstraint {
+	float3 n;int vi;
+	float s,t;
+	HalfConstraint(const float3& _n,int _vi,float _t):n(_n),vi(_vi),s(0),t(_t){}
+	HalfConstraint():vi(-1){}
+};
+
 class float3Nx3N
 {
   public:
 	class Block
 	{
 	  public:
-		float3x3 m;
-		short r,c;
+	  union { struct {
+			float3x3 m;
+			int r,c;
+		};
+			float unused[16];
+		
+	  };
 		Block(){}
-		Block(short _r,short _c):r(_r),c(_c){}
+		Block(short _r,short _c):r(_r),c(_c){m.x=m.y=m.z=float3(0,0,0);}
 	};
 	Array<Block> blocks;  // the first n blocks use as the diagonal.
 	int  n;
@@ -76,7 +93,7 @@ public:
 };
 
 int  ConjGradient(float3N &X, float3Nx3N &A, float3N &B);
-int  ConjGradientFiltered(float3N &X, const float3Nx3N &A, const float3N &B,const float3Nx3N &S);
+int  ConjGradientFiltered(float3N &X, const float3Nx3N &A, const float3N &B,const float3Nx3N &S,Array<HalfConstraint> &H);
 
 inline float3N& Mul(float3N &r,const float3Nx3N &m, const float3N &v)
 {
@@ -89,6 +106,8 @@ inline float3N& Mul(float3N &r,const float3Nx3N &m, const float3N &v)
 	return r;
 }
 
+
+
 inline float dot(const float3N &a,const float3N &b)
 {
 	float d=0;
@@ -98,8 +117,6 @@ inline float dot(const float3N &a,const float3N &b)
 	}
 	return d;
 }
-
-
 
 inline void float3Nx3N::Zero()
 {

@@ -179,28 +179,8 @@ public:
 	const T& operator[](int i) const {return ((T*)this)[i];}
 	__forceinline const vec3<T>& xyz() const { return *((vec3<T>*)this);}
 	__forceinline vec3<T>&       xyz()       { return *((vec3<T>*)this);}
-	void *operator new[](size_t n);
-	void operator delete[](void *a);
 };
 
-/*
-template<>
-class   __declspec(intrin_type) _CRT_ALIGN(16)  vec4<float>
-{
- public:
-	union  __declspec(intrin_type) _CRT_ALIGN(16)  {
-		__m128 d;
-		struct { float x,y,z,w; };
-	};
-	__forceinline vec4<float>(){x=0;y=0;z=0;w=0;};
-	__forceinline vec4<float>(const float &_x,const float &_y,const float &_z,const float &_w){x=_x;y=_y;z=_z;w=_w;};
-	__forceinline vec4(const vec3<float> &v,const float &_w){x=v.x;y=v.y;z=v.z;w=_w;}
-	__forceinline float& operator[](int i) {return ((float*)this)[i];}
-	__forceinline const float& operator[](int i) const {return ((float*)this)[i];}
-	__forceinline const vec3<float>& xyz() const { return *((vec3<float>*)this);}
-	__forceinline vec3<float>&       xyz()       { return *((vec3<float>*)this);}
-};
-*/
 
 typedef vec4<float> float4;
 typedef vec4<int>   int4;
