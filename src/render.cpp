@@ -456,7 +456,6 @@ void RenderStuff()
 
 void Render()
 {
-	PROFILE(render);	
 	::shadowmatid = MaterialFind("extendvolume");
 	if(updatecube)
 	{

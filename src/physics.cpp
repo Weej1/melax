@@ -619,7 +619,6 @@ static void ShapeContactUpdate(Shape *shape)
 }
 void ShapeContactUpdate() 
 {
-	PROFILE(physics_shapecontactupdate);
 	for(int i=0;i<Shapes.count;i++)
 		ShapeContactUpdate(Shapes[i]);
 }
@@ -779,7 +778,6 @@ return;  // lets keep the simulation at least going somewhat.
 
 void PenetrationRollback()
 {
-	PROFILE(physics_penetrationrollback);
 	for(int i=0;i<Shapes.count;i++)
 		PenetrationRollback(Shapes[i]);
 }
@@ -817,7 +815,6 @@ void CCD(RigidBody *rb)
 }
 void CCD()
 {
-	PROFILE(physics_ccd);
 	int i;
 	for(i=0;i<rigidbodies.count;i++) 
 	{
@@ -878,7 +875,6 @@ void FindShapeWorldContacts(Shape *shape)
 }
 void FindShapeWorldContacts()
 {
-	PROFILE(physics_findshapeworldcontacts);
 	for(int i=0;i<Shapes.count;i++)
 		FindShapeWorldContacts(Shapes[i]);
 }
@@ -887,7 +883,6 @@ void FindShapeWorldContacts()
 
 void FindShapeShapeContacts()  // Dynamic-Dynamic contacts
 {
-	PROFILE(physics_shapeshapecontacts);
 	int i_rb,j_rb;
 	for(i_rb=0;i_rb<rigidbodies.count;i_rb++)
 	  for(j_rb=i_rb+1;j_rb<rigidbodies.count;j_rb++)
@@ -1130,7 +1125,6 @@ EXPORTVAR(uselinlims);
 
 void PreIterByShapes()
 {
-	PROFILE(physics_preiter);
 	int i,j,k;
 	for(i=0;i<Limits.count;i++)
 		if(Limits[i]->active) Limits[i]->PreIter();
@@ -1192,7 +1186,6 @@ EXPORTVAR(physics_iterations);
 
 void IteraterByShapes() 
 {
-	PROFILE(physics_iter);
 
 	int s,i;
 	for(s=0;s<physics_iterations;s++)  // iteration steps
@@ -1211,7 +1204,6 @@ void PostIterByShapes()
 	// interpenetrating but that velocity shouldn't stick around for the next frame,
 	// otherwise we will have lots of jitter from our contacts and occilations from constraints.
 	// this is accomplished by clearing the targetvelocities to zero and invoking the solver.
-	PROFILE(physics_postiter);
 	if(biasimpulseremove==0) return;
 	int i;
 	for(i=0;i<Limits.count;i++) 
@@ -1239,7 +1231,6 @@ int physics_enable=1;
 EXPORTVAR(physics_enable);
 void PhysicsUpdate() 
 {
-	PROFILE(physics);
 	if(!physics_enable) return;
 
 	GetEnvBSPs(area_bsps);

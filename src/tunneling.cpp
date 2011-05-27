@@ -57,7 +57,6 @@ EXPORTVAR(boolop_facesplitifyedges);
 Sound *shotsound;
 char *boolop(const char *param) 
 {
-	//PROFILE(boolop);
 	Brush *operand = GetOperand(); 
 	if(!operand) return "nothing to bool against";
 

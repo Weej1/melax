@@ -665,21 +665,12 @@ LISPVF(tailsymexpand);
 
 
 
-
-int primtype(String s)
-{
-	return (s=="float"||s=="int" || s=="string");
-}
-
-
-plobj assignref(plobj addr,plobj typ, plobj v,char *p=NULL,lobj *verbose=0)
+plobj assignref(plobj addr,plobj typ, plobj v)
 {
 	if(!addr  ) return NULL;
-	assert((addr->type==LADDR&&p==NULL) ||  addr->type==LINT);
 	assert(addr->type==LADDR);
-	assert(p==NULL);
-	if(addr->type==LINT) addr->cdesc = GetClass(typ->s); /// HACK!!!!! fix this!!!
-	p = (addr->type==LADDR) ? addr->addr  :   p+= addr->i  ;
+
+	char *p =  addr->addr  ;
 	assert(!(CAR(v) && v->car->type==LSYM && v->car->s=="."));
 	//if(CAR(v) && v->car->type==LSYM && v->car->s==".")
 	//	return assignref(deref(ref,CAR(CDR(v))),CDR(CDR(v)),p,NULL);  // not verbose
@@ -692,7 +683,7 @@ plobj assignref(plobj addr,plobj typ, plobj v,char *p=NULL,lobj *verbose=0)
 			v=v->car;
 		if(v)
 			*((float*)p) = (v->type == LINT)?(float)v->i:v->x;
-		return (verbose)?CONS(verbose,CONS(  lobjfloat( *((float*)p) ),NULL)) : lobjfloat( *((float*)p) );
+		return lobjfloat( *((float*)p) );
 	}
 	if(typ->s=="int")
 	{
@@ -700,7 +691,7 @@ plobj assignref(plobj addr,plobj typ, plobj v,char *p=NULL,lobj *verbose=0)
 			v=v->car;
 		if(v)
 			*((int*)p) = (v->type == LINT)?v->i:(int)v->x;
-		return (verbose)?CONS(verbose,CONS( lobjint( *((int*)p) ),NULL)) : lobjint( *((int*)p) );
+		return  lobjint( *((int*)p) );
 
 	}
 	if(typ->s=="string")
@@ -709,7 +700,7 @@ plobj assignref(plobj addr,plobj typ, plobj v,char *p=NULL,lobj *verbose=0)
 		{
 			*((String*)p) = (v->type==LSTRING)? v->s : String("") << v;
 		}
-		return (verbose)?CONS(verbose,CONS(  lobjstring( *((String*)p) ),NULL)) : lobjstring( *((String*)p) );
+		return  lobjstring( *((String*)p) );
 	}
 	ClassDesc *cd = GetClass(typ->s);
 	assert(cd==addr->cdesc);
@@ -718,11 +709,11 @@ plobj assignref(plobj addr,plobj typ, plobj v,char *p=NULL,lobj *verbose=0)
 	plobj r=rv;
 	for(int i=0;i<cd->members.count;i++)
 	{
-		r->setcdr(CONS(assignref ( lobjaddr(p+cd->members[i].offset,cd->members[i].metaclass),lispsymbol(cd->members[i].metaclass->cname) ,CAR(v),NULL ,(verbose)?lispsymbol(cd->members[i].mname):NULL) , NULL));
+		r->setcdr(CONS(assignref ( lobjaddr(p+cd->members[i].offset,cd->members[i].metaclass),lispsymbol(cd->members[i].metaclass->cname) ,CAR(v)) , NULL));
 		r=r->cdr;
 		v= (CDR(v))?CDR(v):CDR(CAR(v));
 	}
-	return (verbose)?CONS(verbose,CONS(rv->cdr,NULL)):rv->cdr;
+	return rv->cdr;
 
 }
 
@@ -951,36 +942,6 @@ lobj* lexposer(String tname,String name,void *address)
 }
 //lexpose::lexpose(String cname,String name,void *address) { lexposer(cname,name,address);}
 
-// Alternate non-lisp centric implementation of class dictionary:
-Array<ClassDesc*> Classes(-1);
-ClassDesc* GetClass(String cname)
-{
-	if(cname=="") return NULL;
-	for(int i=0;i<Classes.count;i++) 
-		if(Classes[i]->cname==cname) 
-			return Classes[i];
-	return Classes.Add(new ClassDesc(cname));
-}
-
-ldeclare::ldeclare(String cname,String mname,String tname,int offset)
-{
-	GetClass(cname)->members.Add(ClassDesc::Member(mname,offset,GetClass(tname)));  // Alternate non-lisp centric implementation of class dictionary
-
-	//plobj types = lookup("types");
-	//if(!types) types = addbinding(lispsymbol("types"),NULL)->car;
-	plobj b=lookup(cname);
-	if(!b) b = addbinding(lispsymbol(cname),NULL);
-	assert(b->car->type==LSYM && b->car->s==cname);
-	while(b->cdr)
-		b=b->cdr;
-	b->setcdr( CONS(  LIST( lispsymbol(mname) ,  lobjint(offset) , lispsymbol(tname))  ,b->cdr)  );
-}
-
-void hackinitlisp()
-{
-	
-}
-
 //-------------------------------- LISP Eval -------------------------------
 plobj apply(plobj , plobj );
 LISPF(apply);
@@ -1066,7 +1027,7 @@ plobj apply(plobj  f, plobj  v)
 	assert(f);
 	if(f->type==LADDR)
 	{
-		return assignref(f,f->cdr->car,v);
+		return assign(f,v); // uses assignref 
 	}
 	if(f->type==LNATIVE) // native
 	{
@@ -1183,7 +1144,6 @@ int assignmem(void *a,const char *classname,const char *memname,const char *v)
 
 String lisp(String s)
 {
- hackinitlisp();
 	return String( eval(slanguage( lispparse(s))));
 }
 EXPORTFUNC(lisp);
@@ -1214,92 +1174,9 @@ String yfac(String)
 EXPORTFUNC(yfac);
 
 
-
 void keyvent(const char *name,int k)
 {
 	eval(CDR( assoc(lobjint(k),CDR(lookup(name)) )));
-}
-
-
-char *CommandCompletion(const char *name,Array<String> &match) 
-{
-	static char returnvalue[11000];
-	returnvalue[0]='\0';
-	match.count=0;
-	if(!name) return returnvalue;
-	strcpy(returnvalue,name);
-	
-	int i;
-    char *returnarg = returnvalue;
-    const char *lastargument = name;
-
-    // Move to the last argument...
-    int len = strlen( name );
-    for (i=0; i<len; i++)
-    {
-        if (name[i] == ' ')
-        {
-            lastargument = name + i+1;
-            returnarg = returnvalue + i+1;
-        }
-    }
-
-	lobj *v=vars;
-	while(v)
-	{
-		assert(v->car->type==LCONS);
-		assert(v->car->car->type==LSYM);
-		if(!strncmp(v->car->car->s,lastargument,strlen(lastargument)))
-		{
-			match.Add(v->car->car->s);
-		}
-		v=v->cdr;
-	}
-	if(IsOneOf('.',lastargument))
-	{
-		String n("");
-		const char *s=lastargument;
-		while(*s!='.')  n << *s++;
-		s++;
-		lobj *b= lookup(n);
-		assert(b->car->type==LSYM && b->car->s==n);
-		assert(b->cdr->type==LADDR);
-		assert(b->cdr->cdesc);
-		lobj *t = lookup(b->cdr->cdesc->cname);
-		assert(t->type==LCONS);
-		lobj * v=t->cdr;
-		while(v)
-		{
-			assert(v->car->car->type==LSTRING || v->car->car->type==LSYM );
-			if(!strncmp(v->car->car->s,s,strlen(s)))
-			{
-				match.Add(n + "." + v->car->car->s);
-			}
-			v=v->cdr;
-		}
-	}
-
-	if(match.count==0) return returnvalue;
-	if(match.count==1) {
-		sprintf(returnarg,"%s",(const char*)match[0]);  //,(foundobject)?".":" ");
-		return returnvalue;
-	}
-	int j=0;
-	while(lastargument[j]) {
-		returnarg[j]=lastargument[j];
-		j++;
-	}
-	char c=' ';
-	while(c) {
-		c=' ';
-		for(i=0;c!='\0' && i<match.count;i++) {
-			if(c==' ') c=match[i][j];
-			else if(c != match[i][j]) c='\0';
-		}
-		returnarg[j]=c;
-		j++;
-	}
-	return returnvalue;
 }
 
 String FuncInterp(const char *_s) 
@@ -1315,18 +1192,57 @@ String FuncPreInterp(const char *_s) {
 	return lisp(String("'(") + _s+ ")");
 }
 
-//----------------
-//
-void *deref(void *p,ClassDesc *cdesc,String m,ClassDesc *&memcdesc_out)
+void *LVarLookup(String name,ClassDesc *&cdesc_out)
 {
-	if(cdesc==NULL)
-	{
-		plobj a=CDR(lookup(m));
+		plobj a=CDR(lookup(name));
 		if(!a || a->type != LADDR)
 			return NULL;
-		memcdesc_out = a->cdesc;
+		cdesc_out = a->cdesc;
 		return a->addr;
+}
+
+void LVarMatches(String prefix,Array<String> &match) 
+{
+	lobj *v=vars;
+	while(v)
+	{
+		assert(v->car->type==LCONS);
+		assert(v->car->car->type==LSYM);
+		if(!strncmp(v->car->car->s,prefix,strlen(prefix)))
+		{
+			match.Add(v->car->car->s);
+		}
+		v=v->cdr;
 	}
+}
+
+//----------------
+//   Reflection
+//
+//   provides a dictionary of classes
+//   note this doesnt have to be part of the language/interpretor
+//
+
+// Alternate non-lisp centric implementation of class dictionary:
+Array<ClassDesc*> Classes(-1);
+ClassDesc* GetClass(String cname)
+{
+	if(cname=="") return NULL;
+	for(int i=0;i<Classes.count;i++) 
+		if(Classes[i]->cname==cname) 
+			return Classes[i];
+	return Classes.Add(new ClassDesc(cname));
+}
+
+ldeclare::ldeclare(String cname,String mname,String tname,int offset)
+{
+	GetClass(cname)->members.Add(ClassDesc::Member(mname,offset,GetClass(tname)));  // Alternate non-lisp centric implementation of class dictionary
+}
+
+
+void *deref(void *p,ClassDesc *cdesc,String m,ClassDesc *&memcdesc_out)
+{
+	assert(cdesc);
 	ClassDesc::Member *mb=cdesc->FindMember(m);
 	if(!mb) return NULL;
 	memcdesc_out = mb->metaclass;
@@ -1334,6 +1250,37 @@ void *deref(void *p,ClassDesc *cdesc,String m,ClassDesc *&memcdesc_out)
 }
 
 
+void xmlimport(void *obj,ClassDesc* t, xmlNode *n)
+{
+	if(!t || !obj || !n) return;
+	if(!stricmp(t->cname,"float"))  { StringIter(n->body) >> *((float*)obj)   ; return;}
+	if(!stricmp(t->cname,"int"))    { StringIter(n->body) >> *((int*)  obj)   ; return;}
+	if(!stricmp(t->cname,"String")) { *((String*)obj) = n->body               ; return;}
+	if(!stricmp(t->cname,"float3")) { StringIter(n->body) >> *((float3*)obj)   ; }  // dont return since you might actually have child xml nodes like <x>1</x> <y>2</y> <z>3</z>
+	if(!stricmp(t->cname,"float4")) { StringIter(n->body) >> *((float4*)obj)   ; } 
+	for(int i=0;i<n->children.count;i++)
+	{
+		ClassDesc *ct=NULL;
+		void *cobj = deref(obj,t,n->children[i]->tag,ct);
+		xmlimport(cobj,ct,n->children[i]);
+	}
+}
+xmlNode *xmlexport(void *obj,ClassDesc* t,const char *name)
+{
+	assert(t);
+	assert(obj );
+	xmlNode *n=new xmlNode(name);
+	if(!stricmp(t->cname,"float"))  { n->body << *((float*) obj ) ; return n; }
+	if(!stricmp(t->cname,"int"))    { n->body << *((int*)   obj ) ; return n; }
+	if(!stricmp(t->cname,"String")) { n->body =  *((String*)obj ) ; return n; }
+	if(!stricmp(t->cname,"float3")) { n->body << *((float3*)obj ) ; return n; }  
+	if(!stricmp(t->cname,"float4")) { n->body << *((float4*)obj ) ; return n; } 
+	for(int i=0;i<t->members.count;i++)
+	{
+		n->children.Add( xmlexport( (unsigned char*) obj + t->members[i].offset , t->members[i].metaclass , t->members[i].mname));
+	}
+	return n;
+}
 
 //-------------------
 // simple dofile()

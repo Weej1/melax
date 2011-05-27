@@ -9,7 +9,7 @@
 #include "vecmath.h"
 #include "bsp.h"
 #include "wingmesh.h"
-#include "console.h" // for profile
+#include "console.h"
 
 #define FUZZYWIDTH (PAPERWIDTH*100)
 extern float qsnap;

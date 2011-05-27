@@ -219,6 +219,71 @@ static char *keysdown(const char *s) {
 EXPORTFUNC(keysdown);
 
 
+char *CommandCompletion(const char *name,Array<String> &match) 
+{
+	static char returnvalue[11000];
+	returnvalue[0]='\0';
+	match.count=0;
+	if(!name) return returnvalue;
+	strcpy(returnvalue,name);
+	
+	int i;
+    char *returnarg = returnvalue;
+    const char *lastargument = name;
+
+    // Move to the last argument...
+    int len = strlen( name );
+    for (i=0; i<len; i++)
+    {
+        if (name[i] == ' ')
+        {
+            lastargument = name + i+1;
+            returnarg = returnvalue + i+1;
+        }
+    }
+	LVarMatches(lastargument,match);
+	if(IsOneOf('.',lastargument))
+	{
+		String n("");
+		const char *s=lastargument;
+		while(*s!='.')  n << *s++;
+		s++;
+		ClassDesc *cd=NULL;
+		if(LVarLookup(n,cd))
+		 for(int i=0;i<cd->members.count;i++)
+		{
+			if(!strncmp(cd->members[i].mname,s,strlen(s)))
+			{
+				match.Add(n + "." + cd->members[i].mname);
+			}
+		}
+	}
+
+	if(match.count==0) return returnvalue;
+	if(match.count==1) {
+		sprintf(returnarg,"%s",(const char*)match[0]);  //,(foundobject)?".":" ");
+		return returnvalue;
+	}
+	int j=0;
+	while(lastargument[j]) {
+		returnarg[j]=lastargument[j];
+		j++;
+	}
+	char c=' ';
+	while(c) {
+		c=' ';
+		for(i=0;c!='\0' && i<match.count;i++) {
+			if(c==' ') c=match[i][j];
+			else if(c != match[i][j]) c='\0';
+		}
+		returnarg[j]=c;
+		j++;
+	}
+	return returnvalue;
+}
+
+
+
 void doconsole(char c) {
 	if(c==27){  // ESC escape key
 		entertext=0;
@@ -614,7 +679,6 @@ EXPORTFUNC(scanwindows);
 static HINSTANCE hInst;
 int WinD3DInit(  )
 {
-	PROFILE(wind3dinit);
     // Register the window class
     WNDCLASSEX wc = { sizeof(WNDCLASSEX), CS_CLASSDC, MsgProc, 0L, 0L,
                       GetModuleHandle(NULL), NULL, NULL, NULL, NULL,
@@ -788,101 +852,3 @@ EXPORTFUNC(screengrab);
 
 
 
-//------- profile ------
-class profentry
-{
-public:
-	float   total;
-	unsigned count;
-	float    avg;
-	int      mn;
-	int      mx;
-	int    last;
-	profentry():total(0),count(0),avg(0),mx(0),mn(INT_MAX),last(0){}
-};
-
-Hash<String,profentry> profdb;
-void Profile::addrecord(const char *name,int cycles)
-{
-	profentry &e = profdb[name];
-	e.count++;
-	e.total+= cycles;
-	e.avg = (float) e.total/e.count;
-	e.mx = Max(e.mx,(int)cycles);
-	e.mn = Min(e.mn,(int)cycles);
-	e.last=cycles;
-}
-String profile(String name)
-{
-	if(!profdb.Exists(name)) return "no such entry in the profile database";
-	profentry &e = profdb[name];
-	String s;
-	s.sprintf("Count %d  total %f   average %f   min,max [%d,%d] last %f",(int) e.count, e.total, e.avg , e.mn, e.mx,e.last);
-	return s;
-}
-EXPORTFUNC(profile);
-
-String perffrequency(String)
-{
-	LARGE_INTEGER freq;
-	freq.QuadPart=0;
-	QueryPerformanceFrequency(&freq);
-	if(freq.QuadPart > 1000000)
-		return String((float) freq.QuadPart / 1000000.0f ) + " Mhz";
-	//else
-	return String((float) freq.QuadPart );  
-}
-EXPORTFUNC(perffrequency);
-
-String cpufrequency(String)
-{
-	LARGE_INTEGER freq;  freq.LowPart=0; freq.HighPart=0;
-	int rc=QueryPerformanceFrequency(&freq);
-	if(!freq.LowPart) return "error with QueryPerformanceFrequency";
-	assert(rc);
-	LARGE_INTEGER current,start,nextsec;
-	QueryPerformanceCounter(&current);
-	while(QueryPerformanceCounter(&start)&&start.QuadPart==current.QuadPart)  // so start is at next tick
-	{
-	}
-	nextsec.QuadPart=start.QuadPart + freq.QuadPart;
-	{
-		PROFILE(onesecond);
-		while(QueryPerformanceCounter(&current) && current.QuadPart < nextsec.QuadPart)
-		{
-		}
-	}
-	return profile("onesecond");
-}
-EXPORTFUNC(cpufrequency);
-
-
-
-String profilesave(String)
-{
-	FILE *fp=fopen("profile.log","w");
-	if(!fp) return "couldn't open file";
-	for(int i=0;i<profdb.slots_count;i++)
-	 if(profdb.slots[i].used)
-	{
-		fprintf(fp,"%s: %s\n",(const char*)profdb.slots[i].key,(const char*)profile(profdb.slots[i].key));
-	}
-	fclose(fp);
-	return "OK";
-}
-EXPORTFUNC(profilesave);
-
-String profilereset(const char *)
-{
-	int i;
-	for(i=0;i<profdb.slots_count;i++) 
-	{
-		profentry &e = profdb.slots[i].value;
-		e.count=0;
-		e.total=0.0f;
-	}
-	return String("done");
-}
-EXPORTFUNC(profilereset);
-
-void ProfileReset(){profilereset(NULL);}

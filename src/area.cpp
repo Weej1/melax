@@ -121,9 +121,11 @@ String sceneload(String scenename)
 		xmlNode *b = layout->children[i];
 		if(b->tag!="brush") continue;
 		String file = b->Child("file")->body;
-		float3 p = AsFloat3(b->Child("position")->body);
+		//float3 p = AsFloat3(b->Child("position")->body);
 		Brush *brush =  BrushLoad(file,splitpathdir(scenefilename));
 		if(!brush) continue;
+		
+		xmlimport(brush,GetClass("brush"),b);
 		extern void BrushCreateManipulator(Brush *brush,int _active);
 		BrushCreateManipulator(brush,0);
 		assert(!brush->model);
@@ -132,7 +134,7 @@ String sceneload(String scenename)
 			brush->model = CreateModel(brush->bsp,brush->shadowcast);
 		}
 		count ++;
-		brush->position = brush->positionnew = brush->position_start =p;
+		brush->positionnew = brush->position_start =brush->position ;
 	}
 	LightsLoad(layout);
 	SplinesLoad(layout);
@@ -503,11 +505,9 @@ EXPORTFUNC(sceneclear);
 void SceneRender()
 {
 	int i;
-	PROFILE(SceneRender);
 	// PreRenderSetup
 	// here's the game specific stuff to gather things into renderable data:
 	{
-		PROFILE(RenderSetup);
 		//RenderAreaTest();
 		for(i=0;i<drawables.count;i++) 
 		{
@@ -527,12 +527,7 @@ void SceneRender()
 		extern void RenderChuckables();
 		RenderChuckables();
 		
-		extern void RenderCloths();
-		//RenderCloths();
-
-		extern void renderblob();
-		//renderblob();
-
+		
 		ManipulatorRender();
 
 		BrushRenderTestAlpha();

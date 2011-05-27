@@ -84,7 +84,6 @@ void SoundClose()
 extern HWND hWnd;
 int SoundInit()
 {
-	//PROFILE(soundinit);
 	assert(hWnd); // initialze the window and d3d first eh!
     HRESULT hr;
     assert(!m_pDS);
@@ -231,7 +230,6 @@ Sound *SoundCreate(const char * _strWaveFileName, int dwNumBuffers )
 	if(!_strWaveFileName || !*_strWaveFileName) return NULL; // bad input to function.
 	char strWaveFileName[1024];
 	strcpy_s(strWaveFileName,sizeof(strWaveFileName),_strWaveFileName);  // sigh,  since the mmio open function doesn't use const char *
-	//PROFILE(soundcreate);
     HRESULT hr;
     int i;
     LPDIRECTSOUNDBUFFER buffer0     = NULL;
@@ -326,7 +324,6 @@ static LPDIRECTSOUNDBUFFER SoundGetFreeBuffer(Sound *sound)
 //int SoundPlay(Sound *sound, int loop_it=0 ,unsigned int dwPriority=0,  long lVolume=0, long lFrequency=-1 )
 int SoundPlay(Sound *sound, int loop_it ,unsigned int dwPriority,  long lVolume, long lFrequency )
 {
-	//PROFILE(soundplay);
 	if(!m_pDS) return 0; // sound not initialized;
 	if(!sound) return 0; // bad input to function.
 	HRESULT hr;
