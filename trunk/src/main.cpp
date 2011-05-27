@@ -192,7 +192,6 @@ int WINAPI WinMain( HINSTANCE hInst, HINSTANCE, LPSTR arg, int )
 			SetThreadAffinityMask(GetCurrentThread(),core);
 		_core=core;
 
-		PROFILE(mainloop);
 		extern void DoNetworkStuff();
 		DoNetworkStuff();
 
@@ -223,7 +222,6 @@ int WINAPI WinMain( HINSTANCE hInst, HINSTANCE, LPSTR arg, int )
 		}
 		else
 		{
-			PROFILE(playernav);
 			wasd_mlook(player);
 			playermove(player);
 		}
@@ -257,14 +255,16 @@ int WINAPI WinMain( HINSTANCE hInst, HINSTANCE, LPSTR arg, int )
 
 		// do attachement updates here!
 
+
+
 		extern void AreaAggregate();
 		AreaAggregate();
 
 		extern void SceneRender();
 		SceneRender();
-		//ProfileReset();
 
 	}
+
 	SoundClose();
 	ShutDown();
 	return 0;

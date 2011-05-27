@@ -191,13 +191,6 @@ Chuckable *ChuckableLoad(const char* filename)
 	Array<Face*> faces;
 	BSPGetBrep(bsp,faces);
 	Chuckable *chuck = new Chuckable(filename,bsp,faces, float3(0,0,0), 1);  // e->hasAttribute("shadowcast")?e->attribute("shadowcast").Asint():
-	for(i=0;i<e->attributes.count;i++)
-	{
-		if(e->attributes[i]->key=="id") continue; // dont clobber the name.
-		//chuck->hash[e->attributes[i]->key].Set(e->attributes[i]->value);
-		int assignmem(void *a,const char *classname,const char *memname,const char *val);
-		assignmem(chuck,"Chuckable",e->attributes[i]->key,e->attributes[i]->value);
-	}
 	//chuck->name = filename;
 	for(i=0;i<e->children.count;i++)
 	{
@@ -217,11 +210,11 @@ Chuckable *ChuckableLoad(const char* filename)
 		if(e->children[i]->tag == "mass")
 		{
 			float mass=1.0f;
-			//sscanf(e->children[i]->body,"%f",&mass);
 			StringIter(e->children[i]->body) >> mass;
 			rbscalemass(chuck,mass);
 		}
 	}
+	xmlimport(chuck,GetClass("Chuckable"),e);
 	return chuck;
 }
 
@@ -611,15 +604,7 @@ void Character::Drive()
 		extern float GlobalTime;
 		float t = fmodf(GlobalTime,b->animation[b->animation.count-1].time);
 		Quaternion qdrive = GetPose(b->animation,t).orientation;
-		if(b->parent)
-		{
-			Quaternion qb,qp;
-			extern int track_bone(const char* name,Quaternion &q);
-			//if(track_bone(b->id,qb)&&track_bone(b->parent->id,qp))
-			//{
-			//	qdrive = Inverse(qp) * qb;	
-			//}
-		}
+
 
 		extern void createdrive(RigidBody *rb0,RigidBody *rb1,Quaternion target,float maxtorque);
 		createdrive(joint->chuckable0,joint->chuckable1,qdrive,charactertorque);

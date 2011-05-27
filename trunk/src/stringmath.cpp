@@ -55,6 +55,7 @@ String AsString(const float4x4 &m)
 }
 
 
+// now that i have '>>' operators, these should probably get tossed away now!!!
 void   WriteTo(const String &s,String &dst) { dst = s;}
 void   WriteTo(const String &s,int &a)      {sscanf_s(s,"%d",&a);}
 void   WriteTo(const String &s,float &a)    {sscanf_s(s,"%f",&a);}
@@ -67,7 +68,7 @@ void   WriteTo(const String &s,float4x4 &a)
 	for(int i=0;i<4;i++)
 	{
 		int advance=0;
-		sscanf_s(p,"%f %f %f %f",&a[i].x,&a[i].y,&a[i].z,&a[i].w,&advance);
+		sscanf_s(p,"%f %f %f %f %n",&a[i].x,&a[i].y,&a[i].z,&a[i].w,&advance);  // eyeball scan noticed this was missing %n, this routine needs to be tested!!!!!!
 		p+= advance;
 	}
 }

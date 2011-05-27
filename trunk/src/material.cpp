@@ -287,7 +287,6 @@ String jacktexture(String name,unsigned char *image,int w,int h)
 
 String texcompileheightmaps(String s)
 {
-	PROFILE(texcompileheightmaps);
 	String rv;
 	int count=0;
 	Array<String> files;
@@ -633,7 +632,6 @@ EXPORTVAR(effectpath);
 
 Material *MakeMaterial(xmlNode *elem)
 {
-	PROFILE(makematerial);
 	int i;
 	assert(elem->tag == "materialdef");
 	
@@ -708,7 +706,7 @@ Material *MakeMaterial(xmlNode *elem)
 		if(pdesc.Class==D3DXPC_MATRIX_ROWS && pdesc.Type==D3DXPT_FLOAT)
 		{
 			String cs;
-			void *data = deref(0,"",pdesc.Name,cs);
+			void *data = LVarLookup(pdesc.Name,cs);
 			assert(data);
 			//Reference r = GetVar(pdesc.Name);
 			//assert(r.data==data);
@@ -719,7 +717,7 @@ Material *MakeMaterial(xmlNode *elem)
 		{
 			String cs;
 			void *data = deref(m,"Material",pdesc.Name,cs);
-			if(!data) data = deref(0,"",pdesc.Name,cs);
+			if(!data) data = LVarLookup(pdesc.Name,cs);
 			//Reference r = m->hash.Exists(pdesc.Name) ? m->hash[pdesc.Name] : GetVar(pdesc.Name);
 			//assert(data==r.data);
 			if(data && cs=="float3" )
@@ -737,7 +735,7 @@ Material *MakeMaterial(xmlNode *elem)
 		{
 			String cs;
 			void *data = deref(m,"Material",pdesc.Name,cs);
-			if(!data) data = deref(0,"",pdesc.Name,cs);
+			if(!data) data = LVarLookup(pdesc.Name,cs);
 			//Reference r = m->hash.Exists(pdesc.Name) ? m->hash[pdesc.Name] : GetVar(pdesc.Name);
 			//assert(data==r.data);
 			assert(!data || cs=="float");
@@ -785,7 +783,6 @@ void MakeMaterialList(xmlNode *elem,Array<Material*> &mlist)
 
 Material *LoadMatFile(String fname)
 {
-	PROFILE(loadmat);
 	xmlNode *m = XMLParseFile(String("textures/") + fname);
 	assert(m);
 	assert(m->tag=="materialdef");
@@ -812,7 +809,6 @@ void LoadMaterials(void*)
 	// Next, just make a typical diffuse (possibly bumped) material from each remaining image file. 
 	// ignore images with a name that already corresponds to a material name and ignore 
 	// normal maps and cube maps according to filename '_b' and '_c' suffixes (such as "_b.jpg" and "_c.dds")
-	PROFILE(loadmaterials);
 	// prefer to put this into startup cfg:  
 	texcompileheightmaps("");
 	if(!g_effectpool)

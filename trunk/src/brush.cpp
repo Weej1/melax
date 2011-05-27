@@ -373,7 +373,6 @@ LDECLARE(Brush,onenter);
 LDECLARE(Brush,onexit);
 LDECLARE(Brush,onclick);
 LDECLARE(Brush,message);
-LDECLARE(Brush,hud);
 LDECLARE(Brush,mergeable);
 LDECLARE(Brush,bspclip);
 
@@ -444,7 +443,6 @@ void ReCompile(Brush *brush)
 String brushpath("./ models/ brushes/ meshes/");
 Brush *BrushLoad(String _filename,String additionalpath)
 {
-	PROFILE(brushload);
 	int i;
 	xmlNode *e = NULL;
 	String filename = filefind(_filename,additionalpath+" "+brushpath,".bsh .brush .xml");
@@ -463,9 +461,10 @@ Brush *BrushLoad(String _filename,String additionalpath)
 		if(e->attributes[i]->key=="bmin") continue;
 		if(e->attributes[i]->key=="bmax") continue;
 		//brush->hash[e->attributes[i]->key].Set(e->attributes[i]->value);
-		int assignmem(void *a,const char *classname,const char *memname,const char *val);
-		assignmem(brush,"Brush",e->attributes[i]->key,e->attributes[i]->value);
+		//int assignmem(void *a,const char *classname,const char *memname,const char *val);
+		//assignmem(brush,"Brush",e->attributes[i]->key,e->attributes[i]->value);
 	}
+	xmlimport(brush,GetClass("brush"),e);  
 	assert(!brush->model);
 	brush->Modified(); 
 	return brush;

@@ -118,29 +118,19 @@ Light::~Light()
 	lights.Remove(this);
 	// get rid of its manipulator too??
 }
+
+
 Light *LightImport(xmlNode *n)
 {
 	assert(n->tag == "light");
 	//const char *name = n->attribute("name");
 	Light *light = new Light();
-	//if(name&& *name) light->id = name; 
-	for(int i=0;i<n->children.count;i++)
-	{
-		xmlNode *c = n->children[i];
-		if(c->tag=="name")continue;
-		String memclass;
-		if( deref(light,"Light",c->tag,memclass))
-		{
-			FuncInterp(light->id + "." + c->tag + " = " + c->body);  // want to unify all these routines
-		}
-		if(ObjectImportMember(light,c)) continue;
-		assert(0);
-	}
+	xmlimport(light,GetClass("light"),n);
 	return light;
 }
 xmlNode *LightExport(Light *light)
 {
-	xmlNode *e = ObjectExport(light,new xmlNode("light"));
+	xmlNode *e = xmlexport(light,GetClass("light"),"light");
 	return e;
 }
 int LightsLoad(xmlNode *scene)

@@ -56,9 +56,6 @@ inline String gettype(float4x4 &){return "float4x4";}
 
 #define LDECLARE(C,M) ldeclare  ldeclare_ ## C ## M (#C , #M , gettype( ((C*)NULL)-> M ) , OFFSET(C,M) );
 
-struct lobj;
-lobj* lexposer(String cname,String name,void *address);
-
 // WIP: contemplating using a class description system that's more explicit and thus less brittle from the c lang: 
 class ClassDesc
 {
@@ -81,19 +78,30 @@ public:
 extern Array<ClassDesc*> Classes;
 extern ClassDesc* GetClass(String cname);
 void *deref(void *p,ClassDesc *cdesc,String m,ClassDesc *&memcdesc_out);
-inline void *deref(void *p,String cname,String m,String &memclass_out)
+
+inline void *deref(void *p,String cn,String m,String &memclass_out)
 {
 	ClassDesc *md=NULL;
-	void *a = deref(p,(p)?GetClass(cname):NULL,m,md);
-	memclass_out = (md)?md->cname:"";
+	void *a = deref(p,GetClass(cn),m,md);
+	memclass_out = (md)?String(md->cname):"";
 	return a;
 }
+
+class xmlNode;
+extern void     xmlimport(void *obj,ClassDesc* t, xmlNode *n);
+extern xmlNode *xmlexport(void *obj,ClassDesc* t, const char *name);
+
+
+struct lobj;
+lobj* lexposer(String cname,String name,void *address);
 
 class lexpose { public: lexpose(String cname,String name,void *address){ lexposer(cname,name,address);}}; // simply invoke function lexposer()
 #define LEXPOSEVAR(V) lexpose lexposevar_ ## V(gettype(V),#V,&V); // 
 #define LEXPOSEOBJECT(C,N) lexposer(#C, N , this);  // put this in an object's constuctor 
 
-
+void  LVarMatches(String prefix,Array<String> &match); // returns array of names of bound internal variables that begin with character sequence prefix 
+void *LVarLookup(String name,ClassDesc *&cdesc_out);   // looks through internal bindings and returns address and type if it is a c/c++ native variable 
+inline void *LVarLookup(String name,String &classname_out) { ClassDesc *c; void *p= LVarLookup(name,c); if(p)classname_out = c->cname; return p;}
 
 
 
