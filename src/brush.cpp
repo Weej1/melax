@@ -443,7 +443,6 @@ void ReCompile(Brush *brush)
 String brushpath("./ models/ brushes/ meshes/");
 Brush *BrushLoad(String _filename,String additionalpath)
 {
-	int i;
 	xmlNode *e = NULL;
 	String filename = filefind(_filename,additionalpath+" "+brushpath,".bsh .brush .xml");
 	e=XMLParseFile(filename);
@@ -452,18 +451,6 @@ Brush *BrushLoad(String _filename,String additionalpath)
 	brush->filename = filename;
 	brush->bsp = MakeBSP(e);
 	brush->shadowcast = !HitCheck(brush->bsp,1,float3(0,0,-1000.0f),float3(0,0,-1000.0f),NULL);
-	for(i=0;i<e->attributes.count;i++) 
-	{
-		if(e->attributes[i]->key=="id") continue;
-		if(e->attributes[i]->key=="position") continue;
-		if(e->attributes[i]->key=="positionnew") continue;
-		if(e->attributes[i]->key=="filename") continue;
-		if(e->attributes[i]->key=="bmin") continue;
-		if(e->attributes[i]->key=="bmax") continue;
-		//brush->hash[e->attributes[i]->key].Set(e->attributes[i]->value);
-		//int assignmem(void *a,const char *classname,const char *memname,const char *val);
-		//assignmem(brush,"Brush",e->attributes[i]->key,e->attributes[i]->value);
-	}
 	xmlimport(brush,GetClass("brush"),e);  
 	assert(!brush->model);
 	brush->Modified(); 

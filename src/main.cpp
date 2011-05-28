@@ -81,10 +81,10 @@ void crosshair()
 BOOL CALLBACK EnumResNameProc(HMODULE hModule,LPCTSTR lpszType,LPTSTR lpszName,LONG_PTR lParam)
 {
 	String &s = * (String*) lParam;
-	s += (IS_INTRESOURCE(lpszName)) ? String((int) lpszName) : lpszName ;
-	s += "  ";
-	s += (IS_INTRESOURCE(lpszType)) ? String((int) lpszType) : lpszType ;
-	s += "   ";
+	s << (IS_INTRESOURCE(lpszName)) ? String((int) lpszName) : lpszName ;
+	s << "  ";
+	s << (IS_INTRESOURCE(lpszType)) ? String((int) lpszType) : lpszType ;
+	s << "   ";
 	return 1;
 }
 
@@ -93,7 +93,7 @@ String enumrestest(const char *s)
 	String res = "resources:  ";
 	// EnumResourceNames(NULL,NULL,EnumResNameProc,(LONG_PTR)&res);
 	EnumResourceNames(NULL,RT_RCDATA,EnumResNameProc,(LONG_PTR)&res);
-	res+= "Materials: ";
+	res<< "Materials: ";
 	EnumResourceNames(NULL,"material",EnumResNameProc,(LONG_PTR)&res);
 	return res;
 }

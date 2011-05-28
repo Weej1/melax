@@ -62,11 +62,11 @@ ID3DXRenderToEnvMap*   RenderToEnvMap;
 
 static Array<Model *>    models;      //     models submitted for rendering this frame
 
-Array<MeshBase*> regmeshes;
-Array<MeshBase*> alphameshes;
-Array<MeshBase*> shadowmeshes;
+Array<DataMesh*> regmeshes;
+Array<DataMesh*> alphameshes;
+Array<DataMesh*> shadowmeshes;
 
-int meshintersectsphere(MeshBase *mesh,const float3& sphere_worldpos, float r)
+int meshintersectsphere(DataMesh *mesh,const float3& sphere_worldpos, float r)
 {
 	// solve in local space of the mesh.
 	return BoxInside((float4(sphere_worldpos,1.0f)*MatrixRigidInverse(mesh->GetWorld())).xyz(), mesh->Bmin()-float3(r,r,r), mesh->Bmax()+float3(r,r,r));
@@ -75,7 +75,7 @@ float3 meshp;
 EXPORTVAR(meshp);
 Quaternion meshq;
 EXPORTVAR(meshq);
-void drawmesh(MeshBase* mesh)
+void drawmesh(DataMesh* mesh)
 {
 	extern float4x4 World;
 	World = mesh->GetWorld();
@@ -83,19 +83,16 @@ void drawmesh(MeshBase* mesh)
 	meshp = World.w.xyz();
 	extern void SetupMatrices();
 	SetupMatrices();
-	DataMesh *datamesh = dynamic_cast<DataMesh*>(mesh);
-	if(datamesh)
-	{
+
 		extern void DrawDataMesh(DataMesh *datamesh);
-		DrawDataMesh(datamesh);
-	}
+		DrawDataMesh(mesh);
 }
 
-void drawmeshes(Array<MeshBase*> &meshes)
+void drawmeshes(Array<DataMesh*> &meshes)
 {
 	for(int i=0;i<meshes.count;i++)
 	{
-		MeshBase *mesh=meshes[i];
+		DataMesh *mesh=meshes[i];
 		drawmesh(mesh);		
 	}
 }
@@ -106,11 +103,11 @@ EXPORTVAR(spherecull);
 int culledmeshcount=0;
 EXPORTVAR(culledmeshcount);
 
-void drawmeshes_spherecull(Array<MeshBase*> &meshes,const float3 &sphere_worldpos,float sphere_radius)
+void drawmeshes_spherecull(Array<DataMesh*> &meshes,const float3 &sphere_worldpos,float sphere_radius)
 {
 	for(int i=0;i<meshes.count;i++)
 	{
-		MeshBase *mesh=meshes[i];
+		DataMesh *mesh=meshes[i];
 		if(spherecull && !meshintersectsphere(mesh,sphere_worldpos,sphere_radius))
 		{
 			culledmeshcount++;
@@ -121,7 +118,7 @@ void drawmeshes_spherecull(Array<MeshBase*> &meshes,const float3 &sphere_worldpo
 }
 
 static int shadowmatid;
-void categorizemesh(MeshBase *m)
+void categorizemesh(DataMesh *m)
 {
 	extern int hack_usealpha;
 	int matid = m->GetMat();
@@ -149,7 +146,7 @@ void groupmeshes()
 		{
 			DataMesh *m = models[i]->datameshes[j];
 			m->model = models[i];
-			categorizemesh((MeshBase*)m);
+			categorizemesh(m);
 		}
 	}
 }
@@ -172,7 +169,7 @@ void ModelRender(Model* model)
 	{
 		DataMesh *m = model->datameshes[j];
 		assert(m->model==model);
-		categorizemesh((MeshBase*)m);
+		categorizemesh(m);
 	}
 }
 

@@ -120,7 +120,7 @@ static xmlNode *XMLParse() {
 		}
 		else {
 			s = SkipToChars(s,"<");
-			elem->body += String(t,s-t);
+			elem->body << String(t,s-t);
 			NextToken();
 		}
 	}
