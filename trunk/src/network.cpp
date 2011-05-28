@@ -219,10 +219,10 @@ printf("Got a command:\n%s\n-----------\n",command);
 	//close(se);
 		PostString(c,0,1+comcount*2,5);
 		PostString(rs,0,2+comcount*2,5);
-		rs += "\n\n";
+		rs << "\n\n";
 		if(s!=INVALID_SOCKET) 
 		{
-			c+="\n  ";
+			c<<"\n  ";
 			send(s,c,c.Length(),0);
 			send(s,rs,strlen(rs),0);
 		}
@@ -324,7 +324,7 @@ String html;
 String objectlist(String s)
 {
 	html="";
-	html += "\n<UL>\n";
+	html << "\n<UL>\n";
 	for(int i=0;i<Objects.count;i++)
 	{
 		if(s.Length() && strncmp(s,Objects[i]->id,s.Length())!=0)
@@ -346,7 +346,7 @@ EXPORTFUNC(objectlist);
 String htmlobjects(String s)
 {
 	html="";
-	html += "\n<UL>\n";
+	html << "\n<UL>\n";
 	for(int i=0;i<Objects.count;i++)
 	{
 			html  << "<LI> <a target=objectview href=\"http://localhost/htmltweaker " << Objects[i]->id << "\"> " << Objects[i]->id << " </a> </LI>\n" ;
@@ -361,7 +361,7 @@ EXPORTFUNC(htmlobjects);
 String htmltweaker(String s)
 {
 	html="";
-	html += "\n<UL>\n";
+	html << "\n<UL>\n";
 	for(int i=0;i<Objects.count;i++)
 	{
 		if(s.Length() && strncmp(s,Objects[i]->id,s.Length())!=0)

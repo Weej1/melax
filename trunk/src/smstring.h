@@ -11,6 +11,8 @@
 #ifndef SM_STRING_H
 #define SM_STRING_H
 
+
+
 #include <stdio.h>
 #include <string.h>
 #include "array.h"
@@ -24,11 +26,11 @@ class String
 				String(const char *s);
 				String(const char *s,int len);
 	template<class T>
-	explicit	String(const T &a){buf=NULL;prev=next=this;length=size=0;*this="";*this+=a;}
+	explicit	String(const T &a){buf=NULL;prev=next=this;length=size=0;*this="";*this<<a;}
 				~String();
 	String &	operator =(const String &s);
 	String &	operator =(const char *s);
-	String &	operator+=(const char *b);
+	String &	operator<<(const char *b);
 	String &	sprintf(char *format,...);
 	const char  operator[](int i) const {return buf?buf[i]:'\0';}
 	char &		operator[](int i){detach(); return buf[i];}
@@ -53,44 +55,45 @@ protected:
 
 String operator+(const String &a,const String &b);
 
-inline String &operator+=(String &s,float a)
+inline String &operator<<(String &s,float a)
 {
 	char buf[128];
 	sprintf_s(buf,sizeof(buf),"%g",a);
-	return s+=buf;
+	return s<<buf;
 }
 
-inline String &operator+=(String &s,int a)
+inline String &operator<<(String &s,int a)
 {
 	char buf[32];
 	sprintf_s(buf,sizeof(buf),"%d",a);
-	return s+=buf;
+	return s<<buf;
 }
-inline String &operator+=(String &s,char a)
+inline String &operator<<(String &s,char a)
 {
 	char buf[32];
 	sprintf_s(buf,sizeof(buf),"%c",a);
-	return s+=buf;
+	return s<<buf;
 }
-inline String &operator+=(String &s,unsigned int a)
+inline String &operator<<(String &s,unsigned int a)
 {
 	char buf[32];
 	sprintf_s(buf,sizeof(buf),"%d",a);
-	return s+=buf;
+	return s<<buf;
 }
-template<class T>
-inline String &operator << (String &s,const T &t)
-{
-	return s+=t;
-}
+
+//template<class T>
+//inline String &operator += (String &s,const T &t)
+//{
+//	return s<<t;
+//}
 
 template <class T>
 inline String &append(String &s,T* a,int n,const char *delimeter="\n")
 {
 	for(int i=0;i<n;i++) 
 	{
-		s+=a[i];
-		s+=delimeter;
+		s<<a[i];
+		s<<delimeter;
 	}
 	return s;
 }

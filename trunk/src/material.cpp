@@ -299,7 +299,7 @@ String texcompileheightmaps(String s)
 		if(f.Length()<7) continue; // need to have _h suffix and .xxx extention
 		String n = String(f,f.Length()-6) + "_n.dds";
 		if(fileexists(String("./textures/")+n)) continue ; // already have a normalmap for that heightmap
-		rv += texmakenormalmap(String("./textures/") + f);
+		rv << texmakenormalmap(String("./textures/") + f);
 		count ++;
 	}
 	return String(count) + " of " + String(files.count) + " normalmaps created. " + rv;
@@ -481,17 +481,6 @@ class Material : public Entity
 
 Array<Material*> Materials;
 Hash<String,LPD3DXEFFECT> Effects;
-
-
-String materialsetgloss(String s)
-{
-	float g = s.Asfloat();
-	if(g<0.0f || g>10.0f) return "value for gloss out of range";
-	::gloss = g;
-	for(int i=0;i<Materials.count;i++) Materials[i]->gloss=g;
-	return "set gloss on all materials";
-}
-EXPORTFUNC(materialsetgloss);
 
 Texture *foo;
 String createfoo(String)

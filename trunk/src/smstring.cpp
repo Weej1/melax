@@ -83,7 +83,7 @@ String &String::operator=(const char *s)
 	}
 	if(buf) buf[0]='\0';
 	length=0;
-	*this += s;
+	*this << s;
 	return *this;
 }
 
@@ -110,7 +110,7 @@ String::operator const char *() const{
 //----------------------------------------------
 // Concatenating operators.  Note '+=' is not always a member.
 //
-String &String::operator+=(const char *b)
+String &String::operator<<(const char *b)
 {
 	if(!b) return *this;
 	int blen = (int)strlen(b);
@@ -206,7 +206,7 @@ float String::Asfloat() const{
 
 String operator+(const String &a,const String &b){
 	String s(a);
-	s += b;
+	s << b;
 	return s; 
 }
 
@@ -463,7 +463,7 @@ String filefind(const String &filename,String pathlist,const String &extentions)
 	{
 		String p = PopFirstWord(pathlist," ;,\t");
 		p.DropLastChars("/\\");
-		p += "/";
+		p << "/";
 		fn = p+filename;
 		if(fileexists(fn)) return fn;
 		String ex=extentions;

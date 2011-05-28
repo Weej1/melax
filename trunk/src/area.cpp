@@ -426,7 +426,7 @@ public:
 			kgrab=0;
 		else if(k)
 		{
-			command += (char) k;
+			command << (char) k;
 		}
 		update();
 		return 1;
@@ -527,7 +527,8 @@ void SceneRender()
 		extern void RenderChuckables();
 		RenderChuckables();
 		
-		
+
+
 		ManipulatorRender();
 
 		BrushRenderTestAlpha();

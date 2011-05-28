@@ -56,15 +56,6 @@ class VertexPC  // position and color
 	static char *semantic() { return "position color texcoord";}
 };
 
-//
-class MeshBase
-{
-public:
-	virtual int GetMat()=0;
-	virtual const float3 &Bmin()=0; // assumed to be local to the mesh i.e. in model space, not world
-	virtual const float3 &Bmax()=0;
-	virtual const float4x4 &GetWorld()=0;  // plan to make this unnecessary
-};
 
 struct IDirect3DVertexBuffer9;
 struct IDirect3DIndexBuffer9;
@@ -72,7 +63,7 @@ struct IDirect3DVertexDeclaration9;
 
 class Model;
 
-class DataMesh : public MeshBase
+class DataMesh 
 {
 public:
 	int matid;

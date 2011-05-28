@@ -13,72 +13,54 @@
 #include "vecmath.h"
 #include "array.h"
 
-String AsString(const int    &a);
-String AsString(const float  &a);
-String AsString(const float3 &a);
-String AsString(const float4 &a);
-String AsString(const float4x4 &a);
-
-void   WriteTo(const String &s,int &a);
-void   WriteTo(const String &s,float &a);
-void   WriteTo(const String &s,float3 &a);
-void   WriteTo(const String &s,float4 &a);
-void   WriteTo(const String &s,float4x4 &a);
-void   WriteTo(const String &s,String &dst);
-
-int      AsInt     (const String &s);
-float    AsFloat   (const String &s);
-float3   AsFloat3  (const String &s);
-float4   AsFloat4  (const String &s);
-float3x3 AsFloat3x3(const String &s);
 
 
 
-inline String &operator+=(String &s,const float3 &v)
+inline String &operator<<(String &s,const float3 &v)
 {
 	char buf[256];
 	sprintf_s(buf,sizeof(buf),"%g %g %g",v[0],v[1],v[2]);
-	return s+=buf;
+	return s<<buf;
 }
-inline String &operator+=(String &s,const float4 &v)
+inline String &operator<<(String &s,const float4 &v)
 {
 	char buf[256];
 	sprintf_s(buf,sizeof(buf),"%g %g %g %g",v[0],v[1],v[2],v[3]);
-	return s+=buf;
+	return s<<buf;
 }
-inline String &operator+=(String &s,const float2 &v)
+inline String &operator<<(String &s,const float2 &v)
 {
 	char buf[256];
 	sprintf_s(buf,sizeof(buf),"%g %g",v[0],v[1]);
-	return s+=buf;
+	return s<<buf;
 }
 
-inline String &operator+=(String &s,const int3 &v)
+inline String &operator<<(String &s,const int3 &v)
 {
 	char buf[256];
 	sprintf_s(buf,sizeof(buf),"%d %d %d",v[0],v[1],v[2]);
-	return s+=buf;
+	return s<<buf;
 }
 
-inline String &operator+=(String &s,const short3 &t)
+inline String &operator<<(String &s,const short3 &t)
 {
 	char buf[256];
 	sprintf_s(buf,sizeof(buf),"%d %d %d",(int)t[0],(int)t[1],(int)t[2]);
-	return s+=buf;
+	return s<<buf;
 }
-inline String &operator+=(String &s,const byte4 &v)
+inline String &operator<<(String &s,const byte4 &v)
 {
 	char buf[256];
 	sprintf_s(buf,sizeof(buf),"%d %d %d %d",(int)v[0],(int)v[1],(int)v[2],(int)v[3]);
-	return s+=buf;
+	return s<<buf;
 }
 
 
-inline String &operator+=(String &s,const float3x3 &m)
+inline String &operator<<(String &s,const float3x3 &m)
 {
 	char buf[512];
 	sprintf_s(buf,sizeof(buf),"%g %g %g  %g %g %g  %g %g %g",m[0][0],m[0][1],m[0][2],m[1][0],m[1][1],m[1][2],m[2][0],m[2][1],m[2][2]);
-	return s+=buf;
+	return s<<buf;
 }
 
 
@@ -172,6 +154,19 @@ inline StringIter &operator >>(StringIter &s,float3x3 &m)
 {
 	return s>>m.x>>m.y>>m.z;
 }
+
+template <class T> String AsString(const T&t) { String s; return s << t;}
+
+
+inline int      AsInt     (const String &s) { int      a ; StringIter(s) >> a; return a; }
+inline float    AsFloat   (const String &s) { float    a ; StringIter(s) >> a; return a; }
+inline float3   AsFloat3  (const String &s) { float3   a ; StringIter(s) >> a; return a; }
+inline float4   AsFloat4  (const String &s) { float4   a ; StringIter(s) >> a; return a; }
+
+
+
+//template<class T> T& operator>>(String &s,T &t){StringIter(s)>> t;return t;}  // not sure if this would be a good idea or too fragile
+
 
 template<class T>
 void ArrayImport(T *a,const char *string,int count)

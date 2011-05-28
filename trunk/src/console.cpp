@@ -77,9 +77,9 @@ enum lisptype
 	LSTRING   = 7,
 	LADDR     = 8,
 };
-struct lobj;
-Array<lobj*> lispcells;
-int &lispcellcount=lispcells.count;
+
+
+int lispcellcount;
 EXPORTVAR(lispcellcount);
 struct lobj
 {
@@ -136,21 +136,7 @@ struct lobj
 typedef lobj::ptr plobj;
 static plobj vars('m','n','n');  // all the global and local lisp bindings/variables
 
-String gc(String)
-{
-	int n=0;
-	int k=lispcellcount;
-	while(k--)
-	{
-		if(lispcells[k]->refcount==0)
-		{
-			delete lispcells.DelIndexWithLast(k);
-			n++;
-		}
-	}
-	return String(n) + " cells deleted";
-}
-//EXPORTFUNC(gc);
+
 
 plobj CONS(plobj a,plobj d) 
 {
@@ -320,11 +306,8 @@ String &operator<<(String &s,lobj* a)
 	}
 	return s;
 }
-String &operator<<(String &s,plobj a) 
-{
-	return s<<a.p;
-}
-String &operator+=(String &s,const plobj &a) 
+
+String &operator<<(String &s,const plobj &a) 
 {
 	return s<<a.p;
 }
@@ -384,7 +367,7 @@ static String parsequoted(const char *&s,char endquote='\"')
 	assert( *s == endquote);
 	String r;
 	s++;
-	while( *s &&  *s != endquote) r+= *s++;
+	while( *s &&  *s != endquote) r << *s++;
 	if(*s)s++;
 	return r;
 }
@@ -393,7 +376,7 @@ static String parsestring(const char *&s)
 {
 	assert(isAlpha(*s));
 	String r;
-	while(  isAlpha(*s)||isDigit(*s) ) r+= *s++;
+	while(  isAlpha(*s)||isDigit(*s) ) r<< *s++;
 	return r;
 }
 
@@ -401,8 +384,8 @@ static String parsenumber(const char *&s)
 {
 	assert(isDigit(*s) || *s=='.' || *s=='-');
 	String r;
-	if(*s=='-') r+= *s++;  // might be '-' at beginning.
-	while(  isDigit(*s) || *s=='.'  ) r+= *s++;
+	if(*s=='-') r<< *s++;  // might be '-' at beginning.
+	while(  isDigit(*s) || *s=='.'  ) r<< *s++;
 	return r;
 }
 
@@ -410,9 +393,9 @@ static String parsenumberhex(const char *&s)
 {
 	assert(isDigit(*s) || *s=='.' || *s=='-');
 	String r;
-	if(*s=='-') r+= *s++;  // might be '-' at beginning.
-	if(s[0]=='0' && s[1]=='x') {r+= *s++;r+= *s++;}
-	while(  isDigit(*s) || IsOneOf(*s,"abcdefABCDEF")) r+= *s++;
+	if(*s=='-') r<< *s++;  // might be '-' at beginning.
+	if(s[0]=='0' && s[1]=='x') {r<< *s++;r<< *s++;}
+	while(  isDigit(*s) || IsOneOf(*s,"abcdefABCDEF")) r<< *s++;
 	return r;
 }
 
@@ -480,7 +463,7 @@ plobj llex(const char *&s)
 		return lispsymbol(op);
 	}
 	String c;
-	c+=*s++;
+	c << *s++;
 	return lispsymbol(c);
 }
 
@@ -665,19 +648,17 @@ LISPVF(tailsymexpand);
 
 
 
-plobj assignref(plobj addr,plobj typ, plobj v)
+plobj assignref(void *_p ,ClassDesc *cd , plobj v)
 {
-	if(!addr  ) return NULL;
-	assert(addr->type==LADDR);
+	char *p = (char*) _p;
+	assert(p);
+	assert(cd);
+	if(!cd) return NULL;
 
-	char *p =  addr->addr  ;
 	assert(!(CAR(v) && v->car->type==LSYM && v->car->s=="."));
-	//if(CAR(v) && v->car->type==LSYM && v->car->s==".")
-	//	return assignref(deref(ref,CAR(CDR(v))),CDR(CDR(v)),p,NULL);  // not verbose
+
 	assert(!(CAR(v) && v->car->type==LSYM && v->car->s=="="));
-	assert(typ->type==LSYM);
-	assert(typ->s== addr->cdesc->cname);
-	if(typ->s=="float")
+	if(!strcmp(cd->cname,"float"))
 	{
 		while(v&& v->type != LINT && v->type!=LFLOAT)
 			v=v->car;
@@ -685,7 +666,7 @@ plobj assignref(plobj addr,plobj typ, plobj v)
 			*((float*)p) = (v->type == LINT)?(float)v->i:v->x;
 		return lobjfloat( *((float*)p) );
 	}
-	if(typ->s=="int")
+	if(!strcmp(cd->cname,"int"))
 	{
 		while(v&& v->type != LINT && v->type!=LFLOAT)
 			v=v->car;
@@ -694,7 +675,7 @@ plobj assignref(plobj addr,plobj typ, plobj v)
 		return  lobjint( *((int*)p) );
 
 	}
-	if(typ->s=="string")
+	if(!strcmp(cd->cname,"string"))
 	{
 		if(v)
 		{
@@ -702,14 +683,12 @@ plobj assignref(plobj addr,plobj typ, plobj v)
 		}
 		return  lobjstring( *((String*)p) );
 	}
-	ClassDesc *cd = GetClass(typ->s);
-	assert(cd==addr->cdesc);
-	if(!cd) return NULL;
+
 	plobj rv=CONS(NULL,NULL);
 	plobj r=rv;
 	for(int i=0;i<cd->members.count;i++)
 	{
-		r->setcdr(CONS(assignref ( lobjaddr(p+cd->members[i].offset,cd->members[i].metaclass),lispsymbol(cd->members[i].metaclass->cname) ,CAR(v)) , NULL));
+		r->setcdr(CONS(assignref ( p+cd->members[i].offset,cd->members[i].metaclass ,CAR(v)) , NULL));
 		r=r->cdr;
 		v= (CDR(v))?CDR(v):CDR(CAR(v));
 	}
@@ -717,47 +696,34 @@ plobj assignref(plobj addr,plobj typ, plobj v)
 
 }
 
+
 // System for exposing general C/C++ functions to lisp
 // similar to vars, the assignref is used to convert params and return value between lisp and c++
 // for each type of function there has to be a call() function 
 
-plobj call(float3 (*f)(float3),plobj v)
-{
-	float3 a;
-	assignref(lobjaddr(&a,GetClass(gettype(a))),lispsymbol("float3") ,v->car);
-	float3 r=f(a);
-	return assignref(lobjaddr(&r,GetClass(gettype(r))),lispsymbol("float3") ,NULL);
-}
+
 plobj call(float3 (*f)(const Quaternion&,const float3&),plobj v)
 {
 	Quaternion q;
-	assignref(lobjaddr(&q,GetClass(gettype(q))),lispsymbol("float4") ,v->car);
+	assignref(&q,GetClass(gettype(q)),v->car);
 	//assignref(lobjint(0),lispsymbol("float4") ,v->car,(char*)&q);
 	float3 a;
-	assignref(lobjaddr(&a,GetClass(gettype(a))),lispsymbol("float3") ,v->cdr->car);
+	assignref(&a,GetClass(gettype(a)) ,v->cdr->car);
 	//assignref(lobjint(0),lispsymbol("float3") ,v->cdr->car,(char*)&a);
 	float3 r=f(q,a);
 	//return assignref(lobjint(0),lispsymbol("float3") ,NULL,(char*)&r);
-	return assignref(lobjaddr(&r,GetClass(gettype(r))),lispsymbol("float3") ,NULL);
+	return assignref(&r,GetClass(gettype(r)) ,NULL);
 }
-
 
 plobj call(String (*f)(String),plobj v)
 {
 	String a;
-	assignref(lobjaddr(&a,GetClass(gettype(a))),lispsymbol("string") ,v->car);
+	assignref(&a,GetClass(gettype(a)) ,v->car);
 	String r=f(a);
-	return assignref(lobjaddr(&r,GetClass(gettype(r))),lispsymbol("string") ,NULL);
+	return assignref(&r,GetClass(gettype(r)) ,NULL);
 }
 
-
-LISPF(rotate);
-
-float3 ftest(float3 v)
-{
-	return float3(v.x+1,v.y+2,v.z+3);
-}
-LISPF(ftest);
+LISPF(rotate);  // func from math lib
 
 String stest(String p)
 {
@@ -899,7 +865,7 @@ plobj assign(plobj v,plobj e)
 	if(v->type==LCONS) return CONS(assign(v->car,CAR(e)),assign(v->cdr,CDR(e)));
 	if(v->type==LADDR)
 	{
-		return assignref(v,v->cdr->car,e);   
+		return assignref(v->addr,v->cdesc,e);   
 		//plobj eval(plobj);
 		//return eval(LIST(v,e));
 	}
@@ -915,20 +881,6 @@ plobj assign(plobj v,plobj e)
 LISPF(assign);
 
 
-LDECLARE(float3,x);
-LDECLARE(float3,y);
-LDECLARE(float3,z);
-
-LDECLARE(float4,x);
-LDECLARE(float4,y);
-LDECLARE(float4,z);
-LDECLARE(float4,w);
-
-class Foo
-{
-public: float3 Bar;
-};
-LDECLARE(Foo,Bar);
 
 // my c++ objects reachable from lisp by binding a name to lisp node of type addr
 // example of bindings for exposed objects
@@ -940,7 +892,7 @@ lobj* lexposer(String tname,String name,void *address)
 	assert( lispsymbol(tname) !=NULL );
 	return addbinding(lispsymbol(name),lobjaddr((char*)address,tname))->cdr;
 }
-//lexpose::lexpose(String cname,String name,void *address) { lexposer(cname,name,address);}
+
 
 //-------------------------------- LISP Eval -------------------------------
 plobj apply(plobj , plobj );
@@ -1129,18 +1081,6 @@ plobj slanguage(plobj e)
 	// return macromath(macromath(macromath(e,lispparsexx("(. deref)")),lispparsexx("(* mul)(/ div)") ), lispparsexx("(+ add)"));
 }
 
-// might want to reconsider how this gets implemented.  feels more brittle than it should need to be.
-// called from c, given the address and typename of an object (likely the current context)
-// assign a dereferenced member based on string we evaluate
-int assignmem(void *a,const char *classname,const char *memname,const char *v)
-{
-	plobj e = lobjaddr((char *)a,classname);
-	plobj m = deref(e,lispsymbol(memname));
-	if(!m) return 0;
-	//plobj r = assign(m,eval(slanguage( lispparse(v))));
-	plobj r = assign(m,(slanguage( lispparse(v))));
-	return (r!=NULL);
-}
 
 String lisp(String s)
 {
@@ -1239,6 +1179,14 @@ ldeclare::ldeclare(String cname,String mname,String tname,int offset)
 	GetClass(cname)->members.Add(ClassDesc::Member(mname,offset,GetClass(tname)));  // Alternate non-lisp centric implementation of class dictionary
 }
 
+LDECLARE(float3,x);
+LDECLARE(float3,y);
+LDECLARE(float3,z);
+
+LDECLARE(float4,x);
+LDECLARE(float4,y);
+LDECLARE(float4,z);
+LDECLARE(float4,w);
 
 void *deref(void *p,ClassDesc *cdesc,String m,ClassDesc *&memcdesc_out)
 {

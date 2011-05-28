@@ -91,11 +91,11 @@ inline StringIter &operator >>(StringIter &s,KeyFrame &k)
 }
 
 
-inline String operator+=(String &s,const Vertex &v)
+inline String operator<<(String &s,const Vertex &v)
 {
-	s+= v.position;  s+= "  ";
-	s+= v.orientation; s+= "  ";
-	s+= v.texcoord;  s+= "  ";
+	s<< v.position;  s<< "  ";
+	s<< v.orientation; s<< "  ";
+	s<< v.texcoord;  s<< "  ";
 	//s+= v.tangent;   s+= "  ";
 	//s+= v.binormal;  
 	return s;//+= ",\n";
@@ -113,13 +113,13 @@ inline StringIter &operator >>(StringIter &s,Vertex &v)
 	return s;
 }
 
-inline String operator+=(String &s,const VertexS &v)
+inline String operator<<(String &s,const VertexS &v)
 {
-	s+= v.position;  s+= "  ";
-	s+= v.orientation;  s+= "  ";
-	s+= v.texcoord;  s+= "  ";
-	s+= v.bones;     s+= "  ";
-	s+= v.weights;   s+= "  ";
+	s<< v.position;  s<< "  ";
+	s<< v.orientation;  s<< "  ";
+	s<< v.texcoord;  s<< "  ";
+	s<< v.bones;     s<< "  ";
+	s<< v.weights;   s<< "  ";
 	//s+= v.normal;    s+= "  ";
 	//s+= v.color;     s+= "  ";
 	//s+= v.tangent;   s+= "  ";
@@ -231,29 +231,6 @@ static void MakeVertexDecl()
 
 }
 
-LPDIRECT3DTEXTURE9 GetTexture(String &texturename)
-{
-	static Hash<String,LPDIRECT3DTEXTURE9> textures;
-	LPDIRECT3DTEXTURE9 &texture = textures[texturename];
-	if(!texture)
-	{
-		D3DXCreateTextureFromFile(g_pd3dDevice,texturename,&texture) &&
-		  D3DXCreateTextureFromFile(g_pd3dDevice,texturename+".jpg",&texture) && VERIFY_RESULT;
-		assert(texture);
-	}
-	return texture;
-}
-LPDIRECT3DTEXTURE9 GetTextureNoSharing(String &texturename)
-{
-	// always creates a new texture - no sharing
-	LPDIRECT3DTEXTURE9 texture;  
-		D3DXCreateTextureFromFile(g_pd3dDevice,texturename,&texture) &&
-		  D3DXCreateTextureFromFile(g_pd3dDevice,texturename+".jpg",&texture) && VERIFY_RESULT;
-		assert(texture);
-	return texture;
-}
-
-
 
 int InitMaterial(xmlNode *xmlmesh)
 {
@@ -309,14 +286,14 @@ xmlNode *MakeXMLMesh(DataMesh *datamesh)
 	vertlist->attribute("semantic") = datamesh->semantic();
 	for(i=0;i<datamesh->vertices.count;i++)
 	{
-		vertlist->body += datamesh->vertices[i];
-		vertlist->body += ",\n";
+		vertlist->body << datamesh->vertices[i];
+		vertlist->body << ",\n";
 	}
 	trilist->attribute("count") = String(datamesh->tris.count);
 	for(i=0;i<datamesh->tris.count;i++)
 	{
-		trilist->body += datamesh->tris[i];
-		trilist->body += ",\n";
+		trilist->body << datamesh->tris[i];
+		trilist->body << ",\n";
 	}
 	return e;
 }
@@ -475,15 +452,7 @@ void ModelAnimate(Model *model,float t)
 		{
 			b->pose() = GetPose(b->animation,fmodf(t,b->animation[b->animation.count-1].time));
 		}
-		if(b->parent)
-		{
-			Quaternion qb,qp;
-			//extern int track_bone(const char* name,Quaternion &q);
-			//if(track_bone(b->id,qb)&&track_bone(b->parent->id,qp))
-			//{
-			//	b->orientation = Inverse(qp) * qb;	
-			//}
-		}
+
 		b->modelpose = (b->parent)? b->parent->modelpose * b->pose() : b->pose() ;
 		Pose p = b->modelpose * Inverse( b->basepose );
 		model->currentpose[i] =  model->modelmatrix * MatrixFromQuatVec(p.orientation,p.position);
@@ -699,8 +668,8 @@ Model *ModelLoad(const char *filename)
 			model->currentpose.Add(float4x4(1.0f,0,0,0,0,1.0f,0,0,0,0,1.0f,0,0,0,0,1.0f));
 			model->currentposep.Add(float3(0,0,0));
 			model->currentposeq.Add(Quaternion(0,0,0,1));
-			(float4&)b->orientation = AsFloat4(bnode->attribute("orientation")) ;
-			b->position = AsFloat3(bnode->attribute("position"));
+			StringIter(bnode->attribute("orientation")) >> b->orientation   ;
+			b->position = AsFloat3(bnode->attribute("position"));  // local
 			b->basepose = b->parent ? b->parent->basepose * b->pose() : b->pose();  // base pose in localmost
 			Array<float3> points;
 			for(j=0;j<vertices.count;j++)

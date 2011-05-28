@@ -218,13 +218,16 @@ Chuckable *ChuckableLoad(const char* filename)
 	return chuck;
 }
 
+
+
 String spawnchuckable(String s)
 {
 	String name = 	PopFirstWord(s);
 	Chuckable *c = ChuckableLoad(name);
 	if(!c) return "no such object";
 	extern Camera camera;
-	c->position += (s=="") ? camera.position+camera.orientation.zdir() * -1.5f : AsFloat3(s);
+	c->position +=  camera.position+camera.orientation.zdir() * -1.5f ;
+	StringIter(s) >> c->position;
 	return "ok";
 }
 EXPORTFUNC(spawnchuckable);
@@ -657,7 +660,8 @@ String chr(String param)
 {
 	String filename = PopFirstWord(param);
 	extern float3 focuspoint;
-	float3 offset = (param==""||param==" () ")? focuspoint :AsFloat3(param);
+	float3 offset = focuspoint;
+	StringIter(param)>>offset;
 	Character *c = CharacterSpawn(filename,offset);
 	if(!c) return "unable to create character from file";
 	return c->id + " loaded";
