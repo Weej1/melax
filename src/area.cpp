@@ -17,6 +17,7 @@
 #include "mesh.h"
 #include "light.h"
 #include "chuckable.h"
+#include "qplane.h"
 
 int SplinesLoad(xmlNode *scene);
 int SplineExportAll(xmlNode *scene);
@@ -91,11 +92,13 @@ String scenesave(String filename)
 			unnamed++;
 			continue;
 		}
-		xmlNode *b = new xmlNode("brush",s);
+		xmlNode *b = xmlexport(brush,GetClass("Brush"),"brush" ); //new xmlNode("brush",s);
+		s->children.Add(b);
 		xmlNode *n = new xmlNode("file",b);
-		xmlNode *p = new xmlNode("position",b);
+		//xmlNode *p = new xmlNode("position",b);
+		
 		n->body = (brush->filename!="") ? splitpathfname(brush->filename) : brush->id;
-		p->body = AsString(brush->position);
+		//p->body = AsString(brush->position);
 	}
 	LightExportAll(s);
 	SplineExportAll(s);
@@ -134,7 +137,7 @@ String sceneload(String scenename)
 			brush->model = CreateModel(brush->bsp,brush->shadowcast);
 		}
 		count ++;
-		brush->positionnew = brush->position_start =brush->position ;
+		brush->positionold = brush->position_start =brush->position ;
 	}
 	LightsLoad(layout);
 	SplinesLoad(layout);
@@ -385,7 +388,7 @@ public:
 	virtual Quaternion& Orientation(){return dr->orientation;}
 	//virtual int  Drag(const float3 &v0, float3 v1,float3 *impact);
 	virtual int  DragStart(const float3 &v0, const float3 &v1){if(!kgrab){kgrab=2;repeat=0;update();}return 1;}
-	virtual int  DragEnd(const float3 &v0, const float3 &v1){kgrab--;update();return 1;}
+	virtual int  DragEnd(const float3 &v0, const float3 &v1){kgrab--;Orientation()=Quantized(Orientation()) ; update();return 1;}
 	virtual void Render()
 	{
 		float3 c = ((kgrab)?float3(0,1,0):float3(1,0,1)) * ((currentmanipulator==this)?1.0f:0.25f);
@@ -440,8 +443,9 @@ String computer(String s)
 	ConsoleManipulator *cm;
 	static int termnum=0;
 	cm = new ConsoleManipulator(new Drawable(String("lterm") << termnum++ ,ModelText(s,NULL)));
-	cm->dr->orientation = YawPitchRoll(0,60.0f,0);
-	//cm->dr->position = 
+	// not the best starting position, but whatever...
+	cm->dr->orientation = YawPitchRoll(0,90.0f,0);
+	cm->dr->position.z=2.0f;
 	return "ok";
 }
 EXPORTFUNC(computer);
@@ -527,7 +531,6 @@ void SceneRender()
 		extern void RenderChuckables();
 		RenderChuckables();
 		
-
 
 		ManipulatorRender();
 

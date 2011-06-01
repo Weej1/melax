@@ -241,8 +241,8 @@ void Player::areacheck(Brush *area)
 	int wallcontact=0;
 	float3 target = positionnew;
 	float3 impact;
-	const float3 &rp = area->position;
-	const float3 &rpn = area->positionnew;
+	const float3 &rp = area->positionold;
+	const float3 &rpn = area->position;
 	int hit=0;
 	while(hit<5&& HitCheckCylinder(radius,height,area->bsp,0,position-rp,positionnew-rpn,&impact,float3(0,0,0))) {
 		impact+=rpn;
@@ -331,19 +331,11 @@ void Player::move()
 
 	groundcontact=NULL;
 
-	//extern int blobnav(float r,float h,const float3 &_v0,const float3 &_v1,float3 *impact);
-	//if(blobnav(radius,height,position,positionnew,&positionnew))
-	//{
-	//	velocity = (positionnew-position)/DeltaT;
-	//	groundcontact = currentroom;  // so I can jump.
-	//	groundnormal = float3(0,0,1.0f);
-	//}
-
 	for(int i=0;i<Brushes.count;i++)
 	{
 		if(!Brushes[i]->collide) continue; // we dont collide with these brushes.
 		if(!BSPFinite(Brushes[i]->bsp)) continue;   // only want to collide with finite solid chunks here - not rooms
-		if(HitCheckCylinder(radius,height,Brushes[i]->bsp,0,position-Brushes[i]->position,position-Brushes[i]->position,&unused,float3(0,0,0))) continue;  // already interpenetrating - dont restrict movement.
+		if(HitCheckCylinder(radius,height,Brushes[i]->bsp,0,position-Brushes[i]->positionold,position-Brushes[i]->positionold,&unused,float3(0,0,0))) continue;  // already interpenetrating - dont restrict movement.
 		areacheck(Brushes[i]);  // 
 	}
 	if(currentroom)

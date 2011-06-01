@@ -23,18 +23,18 @@
 //-----------------------------------------------------------------------------
 class CD3DFont
 {
+public:
     LPDIRECT3DDEVICE9       m_pd3dDevice; // A D3DDevice used for rendering
     LPDIRECT3DTEXTURE9      m_pTexture;   // The d3d texture for this font
     DWORD   m_dwTexWidth;                 // Texture dimensions
     DWORD   m_dwTexHeight;
-    FLOAT   m_fTexCoords[128-32][4];
+    FLOAT   m_fTexCoords[256][4];
     DWORD   m_dwSpacing;                  // Character pixel spacing per side
 
 	LPD3DXEFFECT effect;
 	D3DXHANDLE diffusemap;
 
 
-public:
     // 2D and 3D text drawing functions
     HRESULT DrawText( FLOAT x, FLOAT y, DWORD dwColor, 
                       const TCHAR* strText );
@@ -105,6 +105,28 @@ CD3DFont::~CD3DFont()
 //-----------------------------------------------------------------------------
 
 
+String genfxml(String)
+{
+	Array<int> w;
+	xmlNode *n = XMLParseFile("textures/newfont/f.xml");
+	ArrayImport(w,n->body,512);
+	for(int i=0;i<256;i++)
+	{
+		w[i]=w[i*2+1];
+	}
+	w.count=256;
+	n->body="";
+	for(int i=0;i<128;i++)
+	{
+		float2 t(1/32.0f + (i %16)/16.0f , 1/32.0f + (i /16)/16.0f);
+		float2 r(1/32.0f,1/32.0f);
+		n->body << i+32 << " " << t-r  << " " << t+r << ",\n";
+	}
+	XMLSaveFile(n,"textures/newfont/ff.xml");
+	return "wrotethestuffout";
+}
+EXPORTFUNC(genfxml);
+
 HRESULT CD3DFont::InitDeviceObjects( LPDIRECT3DDEVICE9 pd3dDevice )
 {
     HRESULT hr;
@@ -130,7 +152,7 @@ HRESULT CD3DFont::InitDeviceObjects( LPDIRECT3DDEVICE9 pd3dDevice )
         p >> c;
 		p >> m_fTexCoords[c-32][0] >> m_fTexCoords[c-32][1] >> m_fTexCoords[c-32][2] >> m_fTexCoords[c-32][3];
     }
-	hr=D3DXCreateTextureFromFile(m_pd3dDevice,imagefile,&m_pTexture);
+	hr=D3DXCreateTextureFromFile(m_pd3dDevice,(const char*)imagefile,&m_pTexture);
 	LPD3DXBUFFER error;
 	extern String effectpath;
 	D3DXCreateEffectFromFile(m_pd3dDevice,effectpath + "/font.fx",NULL,NULL,0,NULL,&effect,&error)  && VERIFY_RESULT;
@@ -243,6 +265,7 @@ HRESULT CD3DFont::DrawText( FLOAT sx, FLOAT sy, DWORD dwColor,
 static CD3DFont *font;
 
 float4 getfontlookup(int c){ return ((float4*)font->gettexcoords())[c-32];}
+int   getfontspacing(){return font->m_dwSpacing;}
 
 void InitFont(LPDIRECT3DDEVICE9 device)
 {

@@ -63,6 +63,13 @@ Plane Quantized(const Plane &p)
 	float mag = magnitude(r);
 	return Plane(r/mag,Round(p.dist(),qsnap/mag));
 }
+Quaternion Quantized(const Quaternion &q)
+{
+	float3 zdir = Quantized(q.zdir());
+	Quaternion qb= RotationArc(q.zdir(),zdir) * q;
+	float3 xdir = Quantized(qb.xdir());
+	return RotationArc(qb.xdir(),xdir) *qb;
+}
 
 
 
