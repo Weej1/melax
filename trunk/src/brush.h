@@ -15,7 +15,6 @@ public:
 	BSPNode *bsp;
 	float3 position;
 	float3 positionold;
-	float3 positionnew;
 	float3 position_start;
 	float3 velocity;
 	Model *model;

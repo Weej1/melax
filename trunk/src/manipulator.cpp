@@ -130,6 +130,7 @@ Manipulator* ManipulatorDrag(const float3 &v0, float3 v1,float3 *impact)
 	if(!dragging)
 	{
 		currentmanipulator->DragStart(v0,v1);
+		if(!currentmanipulator) return NULL;  // in case we delete ourselves here
 		dragging=1;
 	}
 	currentmanipulator->Drag(v0,v1,&v1);

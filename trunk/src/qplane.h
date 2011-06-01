@@ -14,6 +14,7 @@ float3 Quantized(const float3 &v);
 extern float qsnap; //  eg 1.0f turns out to be 0.25 in practice for axial aligned planes
 float QuantumDist(const float3 &n);
 Plane Quantized(const Plane &p);
+Quaternion Quantized(const Quaternion &q);
 
 #endif
 

@@ -196,7 +196,6 @@ int WINAPI WinMain( HINSTANCE hInst, HINSTANCE, LPSTR arg, int )
 		DoNetworkStuff();
 
 		extern void AreaMotionController();
-		extern void AreaPositionUpdate();
 		AreaMotionController();  // sets where brushes are moving this frame.  this was just for some simple testing.  obsolete!
 
 
@@ -227,8 +226,6 @@ int WINAPI WinMain( HINSTANCE hInst, HINSTANCE, LPSTR arg, int )
 		}
 
 
-		AreaPositionUpdate();  // needs to be before rendering, but not sure if this should go here or later on after manip and physics updates
-
 
 		extern void camnav(Camera *camera);
 		camnav(&camera);
@@ -256,7 +253,6 @@ int WINAPI WinMain( HINSTANCE hInst, HINSTANCE, LPSTR arg, int )
 		// do attachement updates here!
 
 
-
 		extern void AreaAggregate();
 		AreaAggregate();
 
@@ -264,7 +260,6 @@ int WINAPI WinMain( HINSTANCE hInst, HINSTANCE, LPSTR arg, int )
 		SceneRender();
 
 	}
-
 	SoundClose();
 	ShutDown();
 	return 0;

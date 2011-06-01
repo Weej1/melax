@@ -13,7 +13,7 @@
 //  update:
 //  At the core is a small lisp implementation and supporting code to bind with the rest of the C application.
 //  I hate code bloat but nonetheless I replaced a few dozen lines of code with a few hundred.  
-//  Need full expressive power that a language provides.  
+//  Need full expressive power that a language provides.  Greenspun's 10th rule is unavoidable.
 //
 //  Although the interpretor can do a lot, C/C++ is still 
 //  the appropriate language for implementing any service

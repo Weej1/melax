@@ -603,24 +603,16 @@ void AreaMotionController()
 	// invoke controllers to specify velocity and potentially new postion.
 	for(int i=0;i<Brushes.count;i++)
 	{
+		Brushes[i]->positionold = Brushes[i]->position;
 		for(int j=0;j<3;j++)  // bounce off of a reasonalbe limit
 		{
 			if(Brushes[i]->position[j] > brushrange[j]) Brushes[i]->velocity[j] = -fabsf(Brushes[i]->velocity[j]);
 			if(Brushes[i]->position[j] <-brushrange[j]) Brushes[i]->velocity[j] =  fabsf(Brushes[i]->velocity[j]);
 		}
-		Brushes[i]->positionnew = Brushes[i]->position + Brushes[i]->velocity * DeltaT; // next position
+		Brushes[i]->position = Brushes[i]->position + Brushes[i]->velocity * DeltaT; // next position
 	}
 }
 
-void AreaPositionUpdate()
-{
-	// actually advance the brushes positions.
-	for(int i=0;i<Brushes.count;i++)
-	{
-		Brushes[i]->positionold = Brushes[i]->position;
-		Brushes[i]->position = Brushes[i]->positionnew;  // animate
-	}
-}
 
 int areaaggregation =0;
 EXPORTVAR(areaaggregation);

@@ -109,11 +109,12 @@ Model *ModelText(String s_,Model *model,float2 size)
             x+=0.5f;
 			continue;
 		}
-		float4 getfontlookup(int c);
+		extern float4 getfontlookup(int c);
 		float4 tex = getfontlookup(c);
-        float tx0 = tex[0]+6.0f/256.0f;
+		extern int   getfontspacing();  // this shouldn't exist. datafile's texcoords should be adjust (todo)
+        float tx0 = tex[0]+getfontspacing()/256.0f;
         float ty0 = 1.0f-tex[1];
-        float tx1 = tex[2]-6.0f/256.0f;
+        float tx1 = tex[2]-getfontspacing()/256.0f;
         float ty1 = 1.0f-tex[3];
 		float3 p = float3((float)x,(float)y, 0.0f); 
 		float w = (tx1-tx0) / (ty0-ty1);
@@ -364,7 +365,6 @@ xmlNode *MakeXMLModel(BSPNode *bsp)
 
 LDECLARE(Brush,highlight);
 LDECLARE(Brush,position);
-LDECLARE(Brush,positionnew);
 LDECLARE(Brush,velocity);
 LDECLARE(Brush,shadowcast);
 LDECLARE(Brush,filename);
