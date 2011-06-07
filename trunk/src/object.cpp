@@ -3,10 +3,17 @@
 #include "object.h"
 #include "stringmath.h"
 #include "xmlparse.h"
+#include "console.h"
 
 Array<Entity*> Objects(-1);
 
-
+Entity *ObjectFind(const char *name)
+{
+	for(int i=0;i<Objects.count;i++)
+	 if(!_stricmp(Objects[i]->id,name)) 
+		 return Objects[i];
+	return NULL;
+}
 
 static String Uniqueify(const char *a)
 {
@@ -34,44 +41,69 @@ Entity::~Entity()
 	if(Objects.element)  // quick check to ensure global list hasn't been destructed already
 		Objects.Remove(this);
 }
-Entity *ObjectFind(const char *name)
+
+
+
+String objectlist(String s)
 {
+	extern String html; // output intended for a browser
+	html="";
+	html << "\n<UL>\n";
+	for(int i=0;i<Objects.count;i++) 
+	{
+		if(s.Length() && strncmp(s,Objects[i]->id,s.Length())!=0)
+			continue;
+		html  << "<LI> " << Objects[i]->id << "\n";
+
+//		for(int j=0;j<Objects[i]->hash.slots_count ; j++)
+//		{
+//			if(!Objects[i]->hash.slots[j].used) 
+//				continue;
+//			html  << "<LI> " << Objects[i]->id << "." << Objects[i]->hash.slots[j].key << " = " << Objects[i]->hash.slots[j].value.Get() << "\n";
+//		}
+	}
+	html << "\n</UL>\n";
+	return "html dump of all internal object variables";
+}
+EXPORTFUNC(objectlist);
+
+
+
+String htmlobjects(String s)
+{
+	extern String html;
+	html="";
+	html << "\n<UL>\n";
 	for(int i=0;i<Objects.count;i++)
-	 if(!_stricmp(Objects[i]->id,name)) 
-		 return Objects[i];
-	return NULL;
-}
-
-xmlNode *ObjectExport(Entity *object,xmlNode *n)
-{
-	if (!n) n=new xmlNode(object->id);
-	else n->attribute("name") = object->id;
-/*	for(int i=0;i<object->hash.slots_count;i++) 
-	 if(object->hash.slots[i].used)
 	{
-		if(object->hash.slots[i].key=="id") continue;
-		if(object->hash.slots[i].key=="name") continue;
-		xmlNode *c=new xmlNode(object->hash.slots[i].key);
-		c->body = object->hash.slots[i].value.Get();
-		n->children.Add(c);
+			html  << "<LI> <a target=objectview href=\"http://localhost/htmltweaker " << Objects[i]->id << "\"> " << Objects[i]->id << " </a> </LI>\n" ;
 	}
-	*/
-	return n;
+	html << "\n</UL>\n";
+	html << "<hr>\n";
+	html << "<iframe height=\"30%\" id=objectview width=\"100%\" />\n" ;
+	return "html list of objects";
 }
-int ObjectImportMember(Entity *object,xmlNode *n)
-{
-//	if(!object->hash.Exists(n->tag)) return 0;
-//	object->hash[n->tag].Set(n->body);
-	return 1;
-}
+EXPORTFUNC(htmlobjects);
 
-void ObjectImport(Entity *object,xmlNode *n)
+String htmltweaker(String s)
 {
-	for(int i=0;i<n->children.count;i++)
+	extern String html;
+	html="";
+	html << "\n<UL>\n";
+	for(int i=0;i<Objects.count;i++)
 	{
-		int rc=ObjectImportMember(object,n->children[i]);
-		if(rc) continue;
+		if(s.Length() && strncmp(s,Objects[i]->id,s.Length())!=0)
+			continue;
+//		for(int j=0;j<Objects[i]->hash.slots_count ; j++)
+//		{
+//			if(!Objects[i]->hash.slots[j].used) 
+//				continue;
+//			html  << "<LI> <form method=get action=\"http://localhost/script\"> <textarea name=text rows=1 cols=60> " 
+//				  << Objects[i]->id << "." << Objects[i]->hash.slots[j].key << " = " << Objects[i]->hash.slots[j].value.Get() 
+//				  << "</textarea><button type=SUBMIT>SUBMIT</button></form>\n";
+//		}
 	}
+	html << "\n</UL>\n";
+	return "html forms generated for all object console variables";
 }
-
-
+EXPORTFUNC(htmltweaker);

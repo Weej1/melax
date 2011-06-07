@@ -194,10 +194,7 @@ extern float& PlayerHeight();
 
 void camnav(Camera *camera)
 {
-	Entity *ptarget = ObjectFind((String&)(camera->target));
-	if(!ptarget) {
-		return;  
-	}
+
 	float &headtilt = PlayerHeadtilt();
 	float &targheight = PlayerHeight();
 	float &camdist  = camera->camdist;

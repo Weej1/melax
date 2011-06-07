@@ -39,7 +39,7 @@
 #include "array.h"
 #include "smstring.h"
 #include "stringmath.h"
-#include "object.h"
+
 
 
 struct ldeclare

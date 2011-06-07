@@ -207,10 +207,7 @@ Spline::~Spline()
 {
 	Splines.Remove(this);
 }
-Spline *SplineFind(const char* name)
-{
-	return dynamic_cast<Spline*>(ObjectFind(name));
-}
+
 void Spline::CalcBBox()
 {
 	BoxLimits(points.element,points.count,bmin,bmax);
@@ -317,7 +314,7 @@ EXPORTFUNC(currentspline);
 xmlNode *SplineExportXML(Spline *spline)
 {
 	xmlNode *n = new xmlNode("spline");
-	ObjectExport(spline,n);
+	//ObjectExport(spline,n);
 	Array<float3> &points = spline->points;
 	// XMLEXPORTARRAY(points);	
 	xmlNode *p = new xmlNode("points",n);
@@ -355,7 +352,6 @@ Spline *SplineImport(xmlNode *n)
 			spline->CalcBBox();
 			continue;
 		}
-		if(ObjectImportMember(spline,c)) continue;
 		assert(0);
 	}
 	return spline;
@@ -479,7 +475,7 @@ void AnimationUpdate()
 String animate(String s)
 {
 	String splinename = PopFirstWord(s," ");
-	Spline *spline = SplineFind(splinename);
+	Spline *spline = NULL; // need a solution here!!  SplineFind(splinename);
 	if(!spline) return String("didn't find a spline with name ") + splinename;
 	assert(0);
 	//extern Reference GetObjectVar(String varname); 

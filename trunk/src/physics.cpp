@@ -245,8 +245,8 @@ public:
 
 LimitCone::LimitCone(RigidBody *_rb,float _limitangle):Limit(NULL,_rb),normal0(0.0f,0.0f,1.0f),normal1(0.0f,0.0f,1.0f)
 {
-	equality = 0;
 	limitangle = _limitangle;
+	equality = (limitangle==0.0f);
 	torque=targetspin=0.0f;
 	maxtorque = FLT_MAX;
 }
@@ -316,6 +316,33 @@ void createdrive(RigidBody *rb0,RigidBody *rb1,Quaternion target,float maxtorque
 	tmplimits.Add ( new LimitAngular(rb0,rb1,axis,-0.3f*(acosf(clamp(dq.w,-1.0f,1.0f))*2.0f)/physics_deltaT,maxtorque) );
 	tmplimits.Add ( new LimitAngular(rb0,rb1,binormal,0,maxtorque) );
 	tmplimits.Add ( new LimitAngular(rb0,rb1,normal  ,0,maxtorque) );
+}
+
+void createlimits(RigidBody *rb0,RigidBody *rb1, const float3 &rmin, const float3 &rxmax)
+{
+	LimitAngular *xa,*xb;
+	//tmplimits.Add ( (xa= new  LimitAngular(rb0,rb1,rb0->orientation.zdir(),asin(-magnitude(cross(rb0->orientation.xdir(),rb1->orientation.xdir()))))));
+	//xa->equality=0;
+	//tmplimits.Add ( (xb= new  LimitAngular(rb0,rb1,rotate(Inverse(rb0->orientation),float3(-1,0,0)),3.14f/2.0f)));
+	//xb->equality=0;
+	LimitCone *cone = new LimitCone(rb1,DegToRad(10.0f));
+	
+	cone->rb0=rb0;
+	cone->rb1=rb1;
+	cone->normal0=cone->normal1=float3(1,0,0);
+
+	tmplimits.Add(cone);
+	{
+	LimitCone *cone = new LimitCone(rb1,DegToRad(45.0f));
+	cone->rb0=rb0;
+	cone->rb1=rb1;
+	cone->normal0=normalize(float3(0,-1,1));
+	cone->normal1=float3(0,0,1);
+	tmplimits.Add(cone);
+	}
+	//tmplimits.Add ( new LimitAngular(rb0,rb1,rb0->orientation.zdir(),0.03f/physics_deltaT*asin(-dot(rb0->orientation.zdir(),(cross(rb0->orientation.xdir(),rb1->orientation.xdir()))))));
+	//tmplimits.Add ( new LimitAngular(rb0,rb1,rb0->orientation.ydir(),0.03f/physics_deltaT*asin(-dot(rb0->orientation.ydir(),(cross(rb0->orientation.xdir(),rb1->orientation.xdir()))))));
+	//tmplimits.Add ( new LimitAngular(rb0,rb1,rotate(Inverse(rb0->orientation),float3(0,0,1)),0) );
 }
 
 void createnail(RigidBody *rb0,const float3 &p0,RigidBody *rb1,const float3 &p1)
@@ -396,7 +423,6 @@ RigidBody::RigidBody(WingMesh *_geometry,const Array<Face *> &_faces,const float
 	mass=1;
 	massinv=1.0f/mass;
 	radius=0;
-	//damping = 0.0f;
 	friction = physics_coloumb;
 
 	if(!_geometry) 
@@ -445,7 +471,7 @@ RigidBody::RigidBody(BSPNode *bsp,const Array<Face *> &_faces,const float3 &_pos
 	usesound = 0;
 	mass=1;
 	massinv=1.0f/mass;
-	//damping = 0.0f;
+	//physics_damping = 0.0f;
 	friction = physics_coloumb;
 
 	Array<WingMesh*> meshes;
@@ -498,12 +524,12 @@ RigidBody::~RigidBody(){
 
 float springk=12.56f; // spring constant position - default to about half a second for unit mass weight
 float springr=1.0f;   // spring constant rotation 
-float damping=0.25f;  // 1 means critically damped,  0 means no damping
+float physics_damping=0.25f;  // 1 means critically damped,  0 means no damping
 EXPORTVAR(springk);
-EXPORTVAR(damping);
+EXPORTVAR(physics_damping);
 float3 SpringForce(State &s,const float3 &home,float mass) {
 	return (home-s.position)*springk +   // spring part
-		   (s.momentum/mass)* (-sqrtf(4 * mass * springk) * damping);    // damping part
+		   (s.momentum/mass)* (-sqrtf(4 * mass * springk) * physics_damping);    // physics_damping part
 }
 
 
@@ -533,7 +559,7 @@ int AddSpringForces(RigidBody *rba,const State &state,float3 *force,float3 *torq
 		float3 va = rba->momentum*rba->massinv + cross(rba->spin,rotate(rba->orientation,pa));
 		float3 vb = rbb->momentum*rbb->massinv + cross(rbb->spin,rotate(rbb->orientation,pb));
 		float3 u  = safenormalize(wb-wa);
-		float3 dforce = u * (dot(vb-va,u)*(sqrtf(4.0f * s->k / (rba->massinv+rbb->massinv)) * damping)); 
+		float3 dforce = u * (dot(vb-va,u)*(sqrtf(4.0f * s->k / (rba->massinv+rbb->massinv)) * physics_damping)); 
 		float3 sforce = (wb-wa) * s->k;
 		*force += sforce + dforce;
 		*torque+= cross(wa-rba->position,sforce+ dforce);
@@ -979,7 +1005,7 @@ void rbinitvelocity(RigidBody *rb)
 	// forward euler update of the velocity and rotation/spin 
 	rb->old.position    = rb->position;
 	rb->old.orientation = rb->orientation;
-	float dampleftover = powf((1.0f-damping),physics_deltaT);
+	float dampleftover = powf((1.0f-physics_damping),physics_deltaT);
 	rb->momentum *= dampleftover; 
 	rb->rotation *= dampleftover;
 	State s = rb->state(); // (State) *rb;
@@ -1120,8 +1146,7 @@ void LimitLinear::PositionCorrection()
 	if(rb1) ApplyImpulseIm(rb1,r1,normal , impulse ); 
 }
 
-int uselinlims=1;
-EXPORTVAR(uselinlims);
+
 
 void PreIterByShapes()
 {

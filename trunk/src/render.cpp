@@ -69,7 +69,7 @@ Array<DataMesh*> shadowmeshes;
 int meshintersectsphere(DataMesh *mesh,const float3& sphere_worldpos, float r)
 {
 	// solve in local space of the mesh.
-	return BoxInside((float4(sphere_worldpos,1.0f)*MatrixRigidInverse(mesh->GetWorld())).xyz(), mesh->Bmin()-float3(r,r,r), mesh->Bmax()+float3(r,r,r));
+	return BoxInside( Inverse(mesh->GetWorld())*sphere_worldpos , mesh->Bmin()-float3(r,r,r), mesh->Bmax()+float3(r,r,r));
 }
 float3 meshp;
 EXPORTVAR(meshp);
@@ -77,12 +77,9 @@ Quaternion meshq;
 EXPORTVAR(meshq);
 void drawmesh(DataMesh* mesh)
 {
-	extern float4x4 World;
-	World = mesh->GetWorld();
-	meshq = quatfrommat<float>(float3x3(World.x.xyz(),World.y.xyz(),World.z.xyz()));
-	meshp = World.w.xyz();
-	extern void SetupMatrices();
-	SetupMatrices();
+	Pose world = mesh->GetWorld();
+	meshq = world.orientation; // quatfrommat<float>(float3x3(world.x.xyz(),world.y.xyz(),world.z.xyz()));
+	meshp = world.position;
 
 		extern void DrawDataMesh(DataMesh *datamesh);
 		DrawDataMesh(mesh);
@@ -155,11 +152,6 @@ void groupmeshes()
 
 
 
-
-void ModelSetMatrix(Model* model, const float4x4 &matrix)
-{
-	model->modelmatrix = matrix;
-}
 
 
 void ModelRender(Model* model)

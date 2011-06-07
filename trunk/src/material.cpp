@@ -22,6 +22,7 @@
 #include "material.h"
 #include "winsetup.h"
 #include "console.h"
+#include "object.h"  // for entity class, parent of material class
 
 float gloss=0.5f;
 EXPORTVAR(gloss); // used by deferred renderer right now.

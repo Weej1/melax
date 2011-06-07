@@ -19,8 +19,8 @@
 class Entity;
 
 
-extern Array<Entity*> Objects;
-extern Entity *ObjectFind(const char *name);
+
+
 class Tracker
 {
   public:
@@ -30,16 +30,11 @@ class Tracker
 class Entity {
   public:
 	String id;
-	//Hash<String,Reference>	hash;
 	Entity(const char *_name,int hashinit=0);
 	virtual ~Entity();
 	Array<Tracker*> trackers;
 };
 
-class xmlNode;
-xmlNode *ObjectExport(Entity *object,xmlNode *n=NULL);
-int ObjectImportMember(Entity *object,xmlNode *n);
-void ObjectImport(Entity *object,xmlNode *n);
 
 
 #endif

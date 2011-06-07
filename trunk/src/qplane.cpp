@@ -1,4 +1,5 @@
 
+#include <stdlib.h> // for rand()
 #include "vecmath.h"
 #include "qplane.h"
 #include "console.h"

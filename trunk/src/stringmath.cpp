@@ -4,14 +4,10 @@
 // string routines that work with basic math types
 //
 
-#include <stdarg.h>
-#include <assert.h>
-#include <ctype.h>
+#pragma error "this file obsolete!!!   all in header file now"
 
-#include "array.h"
-#include "smstring.h"
 #include "stringmath.h"
-#include "vecmath.h"
+
 
 
 

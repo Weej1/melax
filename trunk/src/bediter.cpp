@@ -1234,7 +1234,7 @@ String intersectall(String param)
 		BSPUnion(b->bsp,area->bsp);
 		if(b->model && b->shadowcast)
 		{
-			ModelSetMatrix(b->model,MatrixFromQuatVec(Quaternion(),b->position));  // make sure its in the right spot.
+			b->model->position = b->position; //  todo: fix obvious data duplication here  ,MatrixFromQuatVec(Quaternion(),b->position));  // make sure its in the right spot.
 			extern void ModelDeleteNonShadows(Model *model);
 			ModelDeleteNonShadows(b->model);
 			extern Array<Model*> ShadowOnlyModels;
