@@ -2,7 +2,10 @@
 //
 
 texture diffusemap : DiffuseMap;
-float4x4 WorldViewProj ;
+
+
+#include "common.fxh"  // for constant data: meshq meshp ViewProj   and function: qrotate() 
+
 
 sampler samp = sampler_state
 {
@@ -42,8 +45,7 @@ VtoP vertex_shader(const VS_INPUT IN)
 VtoP vertex_shader_reg(const VS_INPUT IN)
 {
 	VtoP OUT;
-	float4 p = mul(IN.position, WorldViewProj);
-	OUT.position = p;
+	OUT.position = mul(float4(meshp + qrotate(meshq,IN.position),1),ViewProj); // local to world and then projected position in clip space
 	OUT.tex = IN.texcoord;
 	OUT.tex.y = -IN.texcoord.y;
 	OUT.color = float4(1,1,1,1); //IN.color;

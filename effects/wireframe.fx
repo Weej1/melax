@@ -1,13 +1,15 @@
 
 
 
-float4x4 WorldViewProj ;
+
+#include "common.fxh"  // for constant data: meshq meshp ViewProj   and function: qrotate() 
+
 float3 wirecolor={0.2,1.0,0.2};
 
 
 float4 vertex_shader_positionoffsetn(const float4 position:POSITION , const float4 normal :NORMAL):POSITION
 {
-	float4 p = mul(position, WorldViewProj) + normal*0.01;
+	float4 p = mul(float4(meshp + qrotate(meshq,position),1),ViewProj)  + normal*0.01;
 	return p;
 }
 

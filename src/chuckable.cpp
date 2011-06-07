@@ -257,7 +257,7 @@ int Chuckable::HitCheck(const float3 &_v0,const float3 &_v1,float3 *impact)
 
 Chuckable *ChuckableFind(String param)
 {
-	return dynamic_cast<Chuckable*>(ObjectFind(param));
+	return NULL; // dynamic_cast<Chuckable*>(ObjectFind(param));
 }
 
 
@@ -494,7 +494,8 @@ void RenderChuckables()
 		if(!c->render) continue;
 		if(c->model)
 		{
-			ModelSetMatrix(c->model,MatrixFromQuatVec(c->orientation,c->position));
+			c->model->position = c->position;   // why the redundancy?
+			c->model->orientation=c->orientation;
 			ModelRender(c->model);
 		}
 		else
@@ -526,13 +527,7 @@ String chuckdelall(String s)
 }
 EXPORTFUNC(chuckdelall);
 
-String localtoworld(String param)
-{
-	Chuckable *c = dynamic_cast<Chuckable*>(ObjectFind(PopFirstWord(param)));
-	if(!c) return param;
-	return String(c->position+rotate(c->orientation,AsFloat3(param)));
-}
-EXPORTFUNC(localtoworld);
+
 
 //-------------- Character --------------
 
@@ -591,6 +586,9 @@ void Character::MakePhysical()
 		bods.Add(rb);
 	}
 }
+
+int character_jointlimithack=0;
+EXPORTVAR(character_jointlimithack);
 float charactertorque=1000.0f;
 EXPORTVAR(charactertorque);
 void Character::Drive()
@@ -609,8 +607,15 @@ void Character::Drive()
 		Quaternion qdrive = GetPose(b->animation,t).orientation;
 
 
+// for rendering only skinning hack bugfix aaarrrgggg:
+//if(dot(joint->chuckable0->orientation,joint->chuckable1->orientation)<0)
+// joint->chuckable1->orientation = - joint->chuckable1->orientation;
 		extern void createdrive(RigidBody *rb0,RigidBody *rb1,Quaternion target,float maxtorque);
 		createdrive(joint->chuckable0,joint->chuckable1,qdrive,charactertorque);
+		extern void createlimits(RigidBody *rb0,RigidBody *rb1, const float3 &rmin, const float3 &rxmax);
+		if(character_jointlimithack)
+			createlimits(joint->chuckable0,joint->chuckable1, float3(0,0,0),float3(0,0,0));
+			
 	}
 }
 
@@ -618,7 +623,9 @@ int rendercharacterbones=0;
 EXPORTVAR(rendercharacterbones);
 void Character::Render()
 {
-	model->modelmatrix = MatrixFromQuatVec(bods[0]->orientation,bods[0]->position);  // dont like this, but modelmatrix is only used for finding lights for skinned meshes
+//	model->modelmatrix = MatrixFromQuatVec(bods[0]->orientation,bods[0]->position);  // dont like this, but modelmatrix is only used for finding lights for skinned meshes
+model->position = float3(0,0,0);
+model->orientation = Quaternion(0,0,0,1.0f); 
 	for(int i=0;i<bods.count;i++)
 	{
 		Bone *b = model->skeleton[i];
@@ -631,6 +638,10 @@ void Character::Render()
 
 		bods[i]->render = rendercharacterbones;
 	}
+
+	void ModelMeshSkin(Model *model);
+	ModelMeshSkin(model);
+
 	if(!rendercharacterbones) ModelRender(model);
 }
 

@@ -232,7 +232,6 @@ class mat4x4
 
 typedef mat4x4<float> float4x4;
 
-float4 Homogenize(const float3 &v3,const float &w=1.0f); // Turns a 3D float3 4D vector4 by appending w
 
 float4x4 operator*( const float4x4& a, const float4x4& b );
 float4   operator*( const float4& v, const float4x4& m );

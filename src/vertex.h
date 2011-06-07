@@ -24,9 +24,10 @@ class Vertex
 	float3  tangent;
 	float3  binormal;
 	float3  normal;
+	unsigned long color;  // ARGB order, consistent with DWORD,D3DCOLOR,D3DFMT_A8R8G8B8 
 	Vertex(){}
 	Vertex(const float3& _pos,const float4 &_orn, const float2 &_tex)
-		:position(_pos),orientation(_orn),texcoord(_tex){}
+		:position(_pos),orientation(_orn),texcoord(_tex),color(0xFFFFFFFF){}
 	static char *semantic() { return "position orientation texcoord";}
 };
 
@@ -41,19 +42,6 @@ class VertexS
 	float4  weights;
 	VertexS(){}
 	static char *semantic() { return "position orientation texcoord bones weights";}
-};
-
-
-class VertexPC  // position and color
-{
-  public:
-	float3  position;
-	unsigned long color;  // ARGB order, consistent with DWORD,D3DCOLOR,D3DFMT_A8R8G8B8 
-	float2 texcoord;
-	VertexPC(){}
-	VertexPC(const float3& _pos,unsigned long _color,float2 _texcoord=float2(0,0))
-		:position(_pos),color (_color),texcoord(_texcoord){}
-	static char *semantic() { return "position color texcoord";}
 };
 
 
@@ -77,7 +65,7 @@ public:
 	char *semantic()  { return vertices.element->semantic(); }
 	Model *model;
 	int GetMat() {return matid;}
-	const float4x4 &GetWorld();
+	const Pose &GetWorld();
 	virtual const float3 &Bmin();  // assumed to be local to the mesh i.e. in model space, not world
 	virtual const float3 &Bmax();
 	int manifold;
@@ -115,12 +103,11 @@ public:
 	~Bone();
 };
 
-class Model
+class Model : public Pose
 {
   public:
 	Array<DataMesh*> datameshes;
 	float3 bmin,bmax; // local
-	float4x4 modelmatrix;  // also known as "world" matrix in direct3d-speak - converts object local to world space
 	Array<float4x4> currentpose;  // 
 	Array<float3> currentposep;
 	Array<Quaternion> currentposeq;
@@ -156,10 +143,10 @@ public:
 	void BuildMesh();
 };
 
-inline 	const float4x4 &DataMesh::GetWorld()
+inline 	const Pose &DataMesh::GetWorld()
 {
 	assert(model);
-	return model->modelmatrix;
+	return (Pose&) (*model) ;
 }
 inline const float3 &DataMesh::Bmin(){assert(model);return model->bmin;}
 inline const float3 &DataMesh::Bmax(){assert(model);return model->bmax;}

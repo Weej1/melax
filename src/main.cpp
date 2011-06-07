@@ -177,9 +177,6 @@ int WINAPI WinMain( HINSTANCE hInst, HINSTANCE, LPSTR arg, int )
 
 	float3 spinpoint;
 
-	Entity *player = ObjectFind("player");
-	assert(player);
-
 	FuncInterp(arg);
 	cfg(gamefile);
 
@@ -206,23 +203,23 @@ int WINAPI WinMain( HINSTANCE hInst, HINSTANCE, LPSTR arg, int )
 		void AnimationUpdate();
 		AnimationUpdate();
 
-		extern void spinmove(Entity *object,const float3 &cr);
-		extern void wasd_mlook(Entity *object);
-		extern void playermove(Entity *object);
-		extern void wasd_fly(Entity *object);
-
+		// The following bit of player navigation code is highly coupled with code in playernav.cpp 
+		extern void spinmove(const float3 &cr);
+		extern void wasd_mlook();
+		extern void playermove();
+		extern void wasd_fly();
 		if(spinnav)
 		{
-			spinmove(player,spinpoint);
+			spinmove(spinpoint);
 		}
 		else if(flynav)
 		{
-			wasd_fly(player);
+			wasd_fly();
 		}
 		else
 		{
-			wasd_mlook(player);
-			playermove(player);
+			wasd_mlook();
+			playermove();
 		}
 
 
@@ -260,6 +257,7 @@ int WINAPI WinMain( HINSTANCE hInst, HINSTANCE, LPSTR arg, int )
 		SceneRender();
 
 	}
+	
 	SoundClose();
 	ShutDown();
 	return 0;

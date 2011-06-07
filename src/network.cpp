@@ -321,64 +321,6 @@ void DoStdinStuff() {
 
 String html;
 
-String objectlist(String s)
-{
-	html="";
-	html << "\n<UL>\n";
-	for(int i=0;i<Objects.count;i++)
-	{
-		if(s.Length() && strncmp(s,Objects[i]->id,s.Length())!=0)
-			continue;
-		html  << "<LI> " << Objects[i]->id << "\n";
-
-//		for(int j=0;j<Objects[i]->hash.slots_count ; j++)
-//		{
-//			if(!Objects[i]->hash.slots[j].used) 
-//				continue;
-//			html  << "<LI> " << Objects[i]->id << "." << Objects[i]->hash.slots[j].key << " = " << Objects[i]->hash.slots[j].value.Get() << "\n";
-//		}
-	}
-	html << "\n</UL>\n";
-	return "html dump of all internal object variables";
-}
-EXPORTFUNC(objectlist);
-
-String htmlobjects(String s)
-{
-	html="";
-	html << "\n<UL>\n";
-	for(int i=0;i<Objects.count;i++)
-	{
-			html  << "<LI> <a target=objectview href=\"http://localhost/htmltweaker " << Objects[i]->id << "\"> " << Objects[i]->id << " </a> </LI>\n" ;
-	}
-	html << "\n</UL>\n";
-	html << "<hr>\n";
-	html << "<iframe height=\"30%\" id=objectview width=\"100%\" />\n" ;
-	return "html list of objects";
-}
-EXPORTFUNC(htmlobjects);
-
-String htmltweaker(String s)
-{
-	html="";
-	html << "\n<UL>\n";
-	for(int i=0;i<Objects.count;i++)
-	{
-		if(s.Length() && strncmp(s,Objects[i]->id,s.Length())!=0)
-			continue;
-//		for(int j=0;j<Objects[i]->hash.slots_count ; j++)
-//		{
-//			if(!Objects[i]->hash.slots[j].used) 
-//				continue;
-//			html  << "<LI> <form method=get action=\"http://localhost/script\"> <textarea name=text rows=1 cols=60> " 
-//				  << Objects[i]->id << "." << Objects[i]->hash.slots[j].key << " = " << Objects[i]->hash.slots[j].value.Get() 
-//				  << "</textarea><button type=SUBMIT>SUBMIT</button></form>\n";
-//		}
-	}
-	html << "\n</UL>\n";
-	return "html forms generated for all object console variables";
-}
-EXPORTFUNC(htmltweaker);
 
 void DoNetworkStuff(){
 	DoStdinStuff();

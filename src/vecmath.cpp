@@ -242,13 +242,6 @@ float4   operator*( const float4&   v, const float4x4& m )
 //}
 
 
-float4 Homogenize(const float3 &v3,const float &w)
-{
-	return float4(v3.x,v3.y,v3.z,w);
-}
-
-
-
 float4x4 operator*( const float4x4& a, const float4x4& b )
 {
 	return float4x4(a.x*b,a.y*b,a.z*b,a.w*b);

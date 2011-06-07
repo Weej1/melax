@@ -40,12 +40,6 @@ struct Vertex
     float2 texcoord	   : TEXCOORD0;
 };
 
-struct VertexC 
-{
-    float3 position    : POSITION;
-    float3 normal      : NORMAL;
-    float2 texcoord	   : TEXCOORD0;
-};
 
 struct VertexS 
 {
@@ -140,9 +134,9 @@ pose skin_dualquat(int4 bones, float4 weights)  // dual quat skinning (screw mot
 	float4 b1=currentposeq[bones[1]];
 	float4 b2=currentposeq[bones[2]];
 	float4 b3=currentposeq[bones[3]];
-	if(dp4(b0,b1)<0) neg4(b1);
-	if(dp4(b0+b1,b2)<0) neg4(b2);
-	if(dp4(b0+b1+b2,b3)<0) neg4(b3);
+	if(dp4(b0,b1)<0) b1=neg4(b1);
+	if(dp4(b0+b1,b2)<0) b2=neg4(b2);
+	if(dp4(b0+b1+b2,b3)<0) b3=neg4(b3);
 		float4 q = (
 		b0*weights[0] +
 		b1*weights[1] +
@@ -160,20 +154,6 @@ pose skin_dualquat(int4 bones, float4 weights)  // dual quat skinning (screw mot
 	return p;
 }
 
-
-Fragment vertex_shaderc(const VertexC IN)
-{
-	Fragment OUT;
-	OUT.texcoord    = IN.texcoord;
-	OUT.orientation = float4(0,0,0,1); 
-	OUT.tangent  = float3(1,0,0);
-	OUT.binormal = float3(0,1,0);
-	OUT.normal   = (IN.normal);
-	float3 p = (IN.position); 
-	OUT.position  = p ;   
-	OUT.screenpos = mul(float4(p,1),ViewProj); // projected position in clip space
-	return OUT;
-}
 
 
 Fragment vertex_shader(const Vertex IN)
@@ -250,11 +230,10 @@ Fragment vertex_shader_crapskin(const VertexS IN)  // just used for some compari
 }
 
 
-VertexShader vsArray[5] = { compile vs_3_0 vertex_shader(), 
+VertexShader vsArray[4] = { compile vs_3_0 vertex_shader(), 
                             compile vs_3_0 vertex_shader_skin(),
                             compile vs_3_0 vertex_shader_dualquat(),
                             compile vs_3_0 vertex_shader_crapskin(),
-							compile vs_3_0 vertex_shaderc(), 
 };
 
 

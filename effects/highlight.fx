@@ -3,12 +3,13 @@
 
 
 
-float4x4 WorldViewProj ;
+#include "common.fxh"  // for constant data: meshq meshp ViewProj   and function: qrotate() 
+
 float3 highlight={0.2f,0.2f,0.2f};
 
 float4 vertex_shader_positionoffset(const float4 position : POSITION): POSITION
 {
-	float4 p = mul(position, WorldViewProj);
+	float4 p = mul(float4(meshp + qrotate(meshq,position),1),ViewProj); // local to world and then projected position in clip space
 	p.z = p.z - 0.0001;
 	return p;
 }

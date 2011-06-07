@@ -1160,10 +1160,10 @@ void LVarMatches(String prefix,Array<String> &match)
 //   Reflection
 //
 //   provides a dictionary of classes
-//   note this doesnt have to be part of the language/interpretor
+//   note this section has no dependancies on
+//   the language/interpretor
 //
 
-// Alternate non-lisp centric implementation of class dictionary:
 Array<ClassDesc*> Classes(-1);
 ClassDesc* GetClass(String cname)
 {

@@ -210,9 +210,8 @@ void Player::wasd_mlook()
 	movejump=moveforward=movebackward=moveleft=moveright=movedown=0;
 	movetilt=moveturn=0.0f;
 }
-void wasd_mlook(Entity *object) 
+void wasd_mlook() 
 {
-	assert(&gplayer == object);
 	gplayer.wasd_mlook();
 }
 
@@ -331,6 +330,7 @@ void Player::move()
 
 	groundcontact=NULL;
 
+
 	for(int i=0;i<Brushes.count;i++)
 	{
 		if(!Brushes[i]->collide) continue; // we dont collide with these brushes.
@@ -361,9 +361,8 @@ void Player::move()
 	}
 }
 
-void playermove(Entity *object)
+void playermove()
 {
-	assert(object==&gplayer);
 	gplayer.move();
 }
 
@@ -412,9 +411,8 @@ void Player::wasd_fly()
 	movetilt=moveturn=0.0f;
 
 }
-void wasd_fly(Entity *object)
+void wasd_fly()
 {
-	assert(object==&gplayer);
 	gplayer.wasd_fly();
 }
 
@@ -441,8 +439,7 @@ void Player::spinmove(const float3 &cr)
 	position = cr + rotate(q1*Inverse(q0),(position+float3(0,0,height)-cr))  - float3(0,0,height);
 	moveturn = movetilt = 0.0f;
 }
-void spinmove(Entity *object,const float3 &cr)
+void spinmove(const float3 &cr)
 {
-	assert(object=&gplayer);
 	gplayer.spinmove(cr);
 }

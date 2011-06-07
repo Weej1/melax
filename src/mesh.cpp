@@ -47,7 +47,7 @@ static inline const BYTE DeclTypeOf(D3DCOLOR&){return D3DDECLTYPE_D3DCOLOR;}
 
 IDirect3DVertexDeclaration9 *vertexdecl;
 IDirect3DVertexDeclaration9 *vertexskindecl;
-IDirect3DVertexDeclaration9 *vertexdecl_pc;
+
 
 
 
@@ -59,11 +59,7 @@ float4x4& View=camera.view;
 float4x4& Proj=camera.project;
 float4x4& ViewProj=camera.viewproject;
 float4x4& ViewInv=camera.viewinv;
-float4x4  World;
-float4x4  WorldInv;
-float4x4  WorldViewProj;
-float4x4  WorldView;
-float4x4  WorldViewInv;
+
 
 EXPORTVAR(cameraq);
 EXPORTVAR(camerap);
@@ -72,11 +68,7 @@ EXPORTVAR(View);
 EXPORTVAR(Proj);
 EXPORTVAR(ViewProj);
 EXPORTVAR(ViewInv);
-EXPORTVAR(WorldInv);
-EXPORTVAR(WorldViewInv);
-EXPORTVAR(WorldViewProj);
-EXPORTVAR(WorldView);
-EXPORTVAR(World);
+
 
 //------- I/O for data types -------------
 
@@ -135,16 +127,6 @@ inline StringIter &operator >>(StringIter &s,VertexS &v)
 //------------------------------
 
 
-void SetupMatrices()
-{
-	ViewInv  = MatrixRigidInverse(View);  
-	WorldInv = MatrixRigidInverse(World);  
-	// if you change the view, world(aka model), or perspective matrices, then you have to recompute these if you use them.
-	WorldView = World * View;
-	WorldViewProj = WorldView * Proj;
-	WorldViewInv = MatrixRigidInverse(WorldView);  
-}
-
 Bone::Bone(const char *_name, Model *_model, Bone *_parent) : id(_name), model(_model), parent(_parent),geometry(NULL)
 {
 	EXPOSEMEMBER(position);
@@ -168,7 +150,7 @@ DataMesh::~DataMesh()
 }
 
 
-Model::Model():modelmatrix(1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1)
+Model::Model()
 {
 }
 Model::~Model()
@@ -193,12 +175,10 @@ static void MakeVertexDecl()
 
 	D3DVERTEXELEMENT9 vertlayout[] = 
 	{
-		{0, OFFSET(Vertex,position), DECLTYPEOF(Vertex,position), D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_POSITION,0},
+		{0, OFFSET(Vertex,position   ), DECLTYPEOF(Vertex,position   ), D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_POSITION,0},
 		{0, OFFSET(Vertex,orientation), DECLTYPEOF(Vertex,orientation), D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TEXCOORD,1},  // not sure which usage makes most sense
-		{0, OFFSET(Vertex,normal  ), DECLTYPEOF(Vertex,normal  ), D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_NORMAL  ,0},
-		{0, OFFSET(Vertex,texcoord), DECLTYPEOF(Vertex,texcoord), D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TEXCOORD,0},
-		{0, OFFSET(Vertex,tangent ), DECLTYPEOF(Vertex,tangent ), D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TANGENT ,0},
-		{0, OFFSET(Vertex,binormal), DECLTYPEOF(Vertex,binormal), D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_BINORMAL,0},
+		{0, OFFSET(Vertex,texcoord   ), DECLTYPEOF(Vertex,texcoord   ), D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TEXCOORD,0},
+		{0, OFFSET(Vertex,color      ), DECLTYPEOF(Vertex,color      ), D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_COLOR   ,0},
 		D3DDECL_END()
 	};
 	hr = g_pd3dDevice->CreateVertexDeclaration(vertlayout,&vertexdecl);
@@ -217,17 +197,6 @@ static void MakeVertexDecl()
 	hr = g_pd3dDevice->CreateVertexDeclaration(vertlayout_skin,&vertexskindecl);
 	assert(hr == D3D_OK);
 	assert(vertexskindecl);
-
-	D3DVERTEXELEMENT9 vertlayout_pc[] = 
-	{
-		{0, OFFSET(VertexPC,position), DECLTYPEOF(VertexPC,position), D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_POSITION,0},
-		{0, OFFSET(VertexPC,color   ), DECLTYPEOF(VertexPC,color   ), D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_COLOR   ,0},
-		{0, OFFSET(VertexPC,texcoord), DECLTYPEOF(VertexPC,texcoord), D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TEXCOORD,0},
-		D3DDECL_END()
-	};
-	hr = g_pd3dDevice->CreateVertexDeclaration(vertlayout_pc,&vertexdecl_pc);
-	assert(hr == D3D_OK);
-	assert(vertexdecl_pc);
 
 }
 
@@ -438,6 +407,56 @@ Pose GetPose(const Array<KeyFrame> &animation,float t)
 	const Pose &p1 = animation[k  ].pose;
 	return slerp(p0,p1,a); // Pose(p0.position * a + p1.position * (1.0f-a),slerp(p0.orientation,p1.orientation,a));
 }
+
+int dxskin=1;
+EXPORTVAR(dxskin);
+
+float4 qmul(float4 a,float4 b) {return Quaternion(a)*Quaternion(b);}
+float4 qconj(float4 a) {return Conjugate(Quaternion(a));}
+Pose skin_dualquat(byte4 bones, float4 weights,Quaternion *currentposeq,float3 *currentposep)  // dual quat skinning (screw motion)
+{
+	Pose p;
+	float4 b0=currentposeq[bones[0]];
+	float4 b1=currentposeq[bones[1]];
+	float4 b2=currentposeq[bones[2]];
+	float4 b3=currentposeq[bones[3]];
+	if(dot(b0,b1)<0) b1=-(b1);
+	if(dot(b0+b1,b2)<0) b2=-(b2);
+	if(dot(b0+b1+b2,b3)<0) b3=-(b3);
+		float4 q = (
+		b0*weights[0] +
+		b1*weights[1] +
+		b2*weights[2] +
+		b3*weights[3]  );
+	p.position =         // convert translational inputs to dualquat's dual part and back.
+	   qmul( 
+		  qmul(float4(currentposep[bones[0]],0),b0) * weights[0] +
+		  qmul(float4(currentposep[bones[1]],0),b1) * weights[1] +
+		  qmul(float4(currentposep[bones[2]],0),b2) * weights[2] +
+		  qmul(float4(currentposep[bones[3]],0),b3) * weights[3]  
+		 ,qconj(q)
+		).xyz() /dot(q,q); // this works since q hasn't been normalized yet
+	p.orientation = (Quaternion&)normalize(q);
+	return p;
+}
+void ModelMeshSkin(Model *model)
+{
+	if(dxskin)  //using gpu skinning (or still cpu if dx initialized with softwarevertexprocessing)
+		return;  // dont need to update regular format array vertices[] 
+	for(int m=0;m<model->datameshes.count;m++)
+	{
+		DataMesh *mesh = model->datameshes[m];
+		if(!mesh->sverts) continue;
+		VertexS *sv = mesh->sverts;
+		for(int i=0;i<mesh->vertices.count;i++)
+		{
+			Pose p=skin_dualquat(sv[i].bones,sv[i].weights,model->currentposeq.element,model->currentposep.element);
+			mesh->vertices[i].position    = rotate(p.orientation,sv[i].position) + p.position;
+			mesh->vertices[i].orientation = qmul(p.orientation,sv[i].orientation);
+		}
+	}
+}
+
 void ModelAnimate(Model *model,float t)
 {
 	// Set pose of each of the bones based on time t using animation associated with model.
@@ -455,10 +474,10 @@ void ModelAnimate(Model *model,float t)
 
 		b->modelpose = (b->parent)? b->parent->modelpose * b->pose() : b->pose() ;
 		Pose p = b->modelpose * Inverse( b->basepose );
-		model->currentpose[i] =  model->modelmatrix * MatrixFromQuatVec(p.orientation,p.position);
-		Quaternion mq = quatfrommat<float>(float3x3(model->modelmatrix.x.xyz(),model->modelmatrix.y.xyz(),model->modelmatrix.z.xyz()));
+		model->currentpose[i] =  MatrixFromQuatVec(model->orientation,model->position) * MatrixFromQuatVec(p.orientation,p.position);
+		Quaternion mq = model->orientation;
 		model->currentposeq[i] =  mq * p.orientation; 
-		model->currentposep[i] =  model->modelmatrix.w.xyz() +  rotate(mq,p.position);
+		model->currentposep[i] =  model->position +  rotate(mq,p.position);
 	}
 }
 
@@ -467,7 +486,6 @@ EXPORTVAR(skinalgorithm);
 
 int trymat;
 EXPORTVAR(trymat);
-
 
 void DrawDataMesh(DataMesh *datamesh)
 {
@@ -479,7 +497,8 @@ void DrawDataMesh(DataMesh *datamesh)
 	if(!effect) return;  // this material is not to be rendered at this time
 	// done by material now: effect->SetTechnique((hack_usealpha)?"alphatechnique":"t0") && effect->SetTechnique("t0") &&VERIFY_RESULT;
 
-	if(datamesh->model->currentpose.count)
+	int skinning=(dxskin && datamesh->model->currentpose.count);
+	if(skinning)
 	{
 		effect->SetInt("useskin",skinalgorithm);
 		effect->SetFloatArray("currentposep",(float*)datamesh->model->currentposep.element,datamesh->model->currentposep.count*3) && VERIFY_RESULT;
@@ -510,13 +529,13 @@ void DrawDataMesh(DataMesh *datamesh)
 	}
 	else
 	{
-		g_pd3dDevice->SetVertexDeclaration((datamesh->sverts)?vertexskindecl:vertexdecl) && VERIFY_RESULT;
+		g_pd3dDevice->SetVertexDeclaration((skinning)?vertexskindecl:vertexdecl) && VERIFY_RESULT;
 		unsigned int n;
 		effect->Begin(&n,1)  &&VERIFY_RESULT;
 		for(int i=0;i<(int)n;i++)
 		{
 			effect->BeginPass(i)      &&VERIFY_RESULT; 
-			if(datamesh->sverts)
+			if(skinning)
 				g_pd3dDevice->DrawIndexedPrimitiveUP(D3DPT_TRIANGLELIST,0,datamesh->vertices.count,datamesh->tris.count,&datamesh->tris[0],D3DFMT_INDEX16,datamesh->sverts,sizeof(VertexS)) &&VERIFY_RESULT;
 			else
 				g_pd3dDevice->DrawIndexedPrimitiveUP(D3DPT_TRIANGLELIST,0,datamesh->vertices.count,datamesh->tris.count,&datamesh->tris[0],D3DFMT_INDEX16,&datamesh->vertices[0],sizeof(Vertex)) &&VERIFY_RESULT;
@@ -551,13 +570,11 @@ void ModelDeleteNonShadows(Model *model)
 	}
 }
 
-static Array<VertexPC> linebucket;
+static Array<Vertex> linebucket;
+Vertex VertexPC(const float3 &p,const D3DCOLOR &c) {Vertex v;v.position=p,v.color=c;return v;}
 void Line(const float3 &_v0,const float3 &_v1,const float3 &_c)
 {
-	VertexPC v[2];
-	assert((&v[1])==(&v[0])+1);
-	v[0].position=_v0;
-	v[1].position=_v1;
+
 	D3DCOLOR c = D3DCOLOR_COLORVALUE(_c.x,_c.y,_c.z,1.0f);
 	linebucket.Add(VertexPC(_v0,c));
 	linebucket.Add(VertexPC(_v1,c));
@@ -583,12 +600,12 @@ void RenderLines()
 	assert(matid>=0);
 	LPD3DXEFFECT effect = MaterialSetup(matid);
 	assert(effect);
-	g_pd3dDevice->SetVertexDeclaration(vertexdecl_pc) && VERIFY_RESULT;
+	g_pd3dDevice->SetVertexDeclaration(vertexdecl) && VERIFY_RESULT;
 	effect->Begin(&n,1)  &&VERIFY_RESULT;
 	for(i=0;i<(int)n;i++)
 	{
 		effect->BeginPass(i)      &&VERIFY_RESULT; 
-		g_pd3dDevice->DrawPrimitiveUP(D3DPT_LINELIST,linebucket.count/2,linebucket.element,sizeof(VertexPC))&&VERIFY_RESULT;
+		g_pd3dDevice->DrawPrimitiveUP(D3DPT_LINELIST,linebucket.count/2,linebucket.element,sizeof(Vertex))&&VERIFY_RESULT;
 		effect->EndPass();
 	}
 	effect->End()        &&VERIFY_RESULT;

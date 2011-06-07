@@ -240,7 +240,8 @@ void BSPRenderTest(BSPNode *bsp,const float3 &p,const Quaternion &q,int shadow,i
 		{
 			hack_usealpha++;
 			Model* modela = MakeBrepBuffersMat(over,matid_override);
-			modela->modelmatrix = MatrixFromQuatVec(q,p); 
+			modela->position =p;
+			modela->orientation = q; 
 			ModelRender(modela);
 			tempmodels.Add(modela);
 			hack_usealpha--;
@@ -251,7 +252,8 @@ void BSPRenderTest(BSPNode *bsp,const float3 &p,const Quaternion &q,int shadow,i
 	{
 		model = MakeBrepBuffersMat(bsp,matid_override);
 	}
-	model->modelmatrix = MatrixFromQuatVec(q,p); 
+	model->position =p;
+	model->orientation = q; 
 	ModelRender(model);
 	tempmodels.Add(model);
 }
@@ -275,7 +277,7 @@ void BrushRenderTest()
 
 		if(brush_rendermodel && brush->model)
 		{
-			ModelSetMatrix(brush->model,MatrixFromQuatVec(Quaternion(),brush->position));
+			brush->model->position = brush->position ;  // fixme data duplication ,MatrixFromQuatVec(Quaternion(),brush->position));
 			ModelRender(brush->model);
 		}
 		else
@@ -303,7 +305,7 @@ void BrushRenderTestAlpha()
 
 		if(brush_rendermodel && brush->model)
 		{
-			ModelSetMatrix(brush->model,MatrixFromQuatVec(Quaternion(),brush->position));
+			brush->model->position = brush->position ; // fixme
 			ModelRender(brush->model);
 		}
 		else
@@ -352,7 +354,8 @@ Drawable *spawndrawable(String filename,const float3 &position=float3(0,0,0),con
 {
 	Model *model=ModelLoad(filename);
 	if(!model) return NULL;
-	model->modelmatrix = MatrixFromQuatVec(orientation,position);
+	model->position    = position;
+	model->orientation = orientation;
 	String name = splitpathfname(filename);
 	Drawable *drawable = new Drawable(name,model);
 	drawable->position = position;
@@ -517,7 +520,8 @@ void SceneRender()
 		{
 			drawables[i]->time += drawables[i]->animspeed * DeltaT;
 			ModelAnimate(drawables[i]->model,drawables[i]->time);
-			drawables[i]->model->modelmatrix = MatrixFromQuatVec(drawables[i]->orientation,drawables[i]->position);
+			drawables[i]->model->position    = drawables[i]->position   ;
+			drawables[i]->model->orientation = drawables[i]->orientation;
 			ModelRender(drawables[i]->model);
 		}
 

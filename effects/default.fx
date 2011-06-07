@@ -97,7 +97,7 @@ technique unlit
 		ZENABLE = TRUE;
 		ZFUNC = LESSEQUAL ;
 		ZWRITEENABLE =     TRUE ;
-		CullMode = NONE;
+		CullMode = CW;
 		STENCILENABLE=    FALSE  ;
 		ALPHABLENDENABLE= FALSE ;
 		SHADEMODE = GOURAUD ;
@@ -127,7 +127,7 @@ technique lightpass
 		SHADEMODE = GOURAUD ;
 		SRCBLEND=  ONE ;
 		DESTBLEND= ONE ;
-		CullMode = NONE; // CW;
+		CullMode =  CW;
 		FILLMODE=SOLID;
 		PixelShader  = compile ps_2_0 pixel_shader_light();
 		VertexShader = vsArray[useskin];// compile vs_2_0 vertex_shader();
