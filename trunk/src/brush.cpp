@@ -248,7 +248,7 @@ Model *MakeBrepBuffersMatOld(BSPNode *bsp,int matid_override)
 
 
 
-inline String &operator+=(String &s,const BSPNode &n)
+inline String &operator<<(String &s,const BSPNode &n)
 {
 	return s << n.isleaf << "   " << n.normal() << " " << n.dist()   ;
 }
