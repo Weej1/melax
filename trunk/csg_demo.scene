@@ -1,0 +1,121 @@
+<scene>
+ 
+ 
+  <brush>
+    <file>pyrm</file>
+    <position>-3.25 0 -0.5</position>
+    <onclick>intersect</onclick>
+  </brush>
+  <brush>
+    <file>pyrm</file>
+    <position>3.25 0 -0.5</position>
+    <onclick>intersect</onclick>
+  </brush>
+
+
+  <brush>
+    <highlight>0</highlight>
+    <position>10.75 -0.75 1.25</position>
+    <velocity>0 0 0</velocity>
+    <shadowcast>1</shadowcast>
+    <filename>arch.bsh</filename>
+    <onclick>intersect</onclick>
+
+    <file>arch</file>
+  </brush>
+  <brush>
+    <highlight>0</highlight>
+    <position>10.75 7 1.25</position>
+    <velocity>0 0 0</velocity>
+    <shadowcast>1</shadowcast>
+    <filename>C:\temp\gcode_test\arch.bsh</filename>
+    <collide>1</collide>
+    <onclick>intersect</onclick>
+
+    <file>arch</file>
+  </brush>
+  <brush>
+    <highlight>0</highlight>
+    <position>-11.25 10.25 1.25</position>
+    <velocity>0 -0 0</velocity>
+    <shadowcast>1</shadowcast>
+    <filename>C:\temp\gcode_test\arch.bsh</filename>
+    <collide>1</collide>
+    <onclick>intersect</onclick>
+
+    <file>arch</file>
+  </brush>
+  <brush>
+    <highlight>0</highlight>
+    <position>-0.25 4.25 0.5</position>
+    <velocity>0 0 0</velocity>
+    <shadowcast>1</shadowcast>
+    <filename>brushes/pizzabox.bsh</filename>
+    <collide>1</collide>
+    <onenter></onenter>
+    <onexit></onexit>
+    <onclick></onclick>
+    <message></message>
+    <mergeable>1</mergeable>
+    <bspclip>0</bspclip>
+    <file>pizzabox</file>
+  </brush>
+  <brush>
+    <highlight>0</highlight>
+    <position>-0.25 6.5 1</position>
+    <velocity>0 0 0</velocity>
+    <shadowcast>1</shadowcast>
+    <filename>brushes/pizzabox.bsh</filename>
+    <collide>1</collide>
+    <onenter></onenter>
+    <onexit></onexit>
+    <message></message>
+    <mergeable>1</mergeable>
+    <bspclip>0</bspclip>
+    <file>pizzabox</file>
+  </brush>
+  <brush>
+    <highlight>0</highlight>
+    <position>13.75 0.25 1.75</position>
+    <velocity>0 0 0</velocity>
+    <shadowcast>1</shadowcast>
+    <collide>1</collide>
+    <file>archhall</file>
+    <onclick>intersect</onclick>
+  </brush>
+  <light>
+    <enable>1</enable>
+    <position>-2.8226 0.0297395 1.72884</position>
+    <radius>5</radius>
+    <color>2.98023 1 1</color>
+    <shadowcast>1</shadowcast>
+  </light>
+  <light>
+    <enable>1</enable>
+    <position>3.18271 -0.274424 1.89112</position>
+    <radius>5</radius>
+    <color>1 2.98023 1</color>
+    <shadowcast>1</shadowcast>
+  </light>
+  <light>
+    <enable>1</enable>
+    <position>8.4284 11.3657 2.6858</position>
+    <radius>10</radius>
+    <color>0.4 0.4 1</color>
+    <shadowcast>1</shadowcast>
+  </light>
+  <light>
+    <enable>1</enable>
+    <position>-8.20912 10.4626 2.95319</position>
+    <radius>10</radius>
+    <color>0.6 0.6 1</color>
+    <shadowcast>1</shadowcast>
+  </light>
+  <light>
+    <enable>1</enable>
+    <position>13.6985 3.91945 2.84533</position>
+    <radius>5</radius>
+    <color>1 .3 .5</color>
+    <shadowcast>1</shadowcast>
+  </light>
+</scene>
