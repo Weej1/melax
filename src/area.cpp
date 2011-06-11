@@ -342,8 +342,6 @@ Array<Drawable *> drawables;
 Drawable::Drawable(String _name,Model *_model):Entity(_name),model(_model),animspeed(0.0f),time(0.0f)
 {
 	LEXPOSEOBJECT(Drawable,id);
-	EXPOSEMEMBER(position);
-	EXPOSEMEMBER(orientation);
 	drawables.Add(this);
 }
 Drawable::~Drawable()

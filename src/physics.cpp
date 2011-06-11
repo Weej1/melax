@@ -13,7 +13,6 @@
 #include "console.h"
 #include "camera.h"
 
-#define PROFILE(N) 
 
 float   physics_deltaT=0.015f;
 EXPORTVAR(physics_deltaT);
@@ -37,6 +36,21 @@ float  physics_coloumb=0.6f; // used as default friction value and for static ge
 EXPORTVAR(physics_restitution);
 EXPORTVAR(physics_coloumb);  // between 0 and 1
 
+
+
+int physics_warmstart=1;
+EXPORTVAR(physics_warmstart);
+int physics_warmstartjoint=0;
+EXPORTVAR(physics_warmstartjoint);
+
+float physics_biasfactorjoint = 0.3f;
+float physics_biasfactorpositive = 0.3f;
+float physics_biasfactornegative = 0.3f;
+EXPORTVAR(physics_biasfactorjoint);
+EXPORTVAR(physics_biasfactorpositive);
+EXPORTVAR(physics_biasfactornegative);
+float physics_falltime_to_ballistic=0.2f;
+EXPORTVAR(physics_falltime_to_ballistic);
 
 // global list of physics objects
 Array<RigidBody *> rigidbodies;
@@ -258,7 +272,7 @@ void LimitCone::PreIter()
 	axis = safenormalize(cross(a1,a0));  // could this be an issue if a0 and a1 are collinear and we start enforcing a two sided constraint with limitangle 0 on a bogus axis
 	float rbangle = acosf(clamp(dot(a0,a1),0.0f,1.0f));
 	float dangle = rbangle - limitangle;
-	targetspin = ((equality)?0.3f:1.0f) * dangle /physics_deltaT; // enforce all the way to limit if one-sided
+	targetspin = ((equality)?physics_biasfactorjoint:1.0f) * dangle /physics_deltaT; // enforce all the way to limit if one-sided
 	torque=0.0f;  // specifically its an angular impulse aka torque times time
 }
 void LimitCone::Iter()
@@ -286,7 +300,7 @@ void LimitCone::PostIter()
 {
 	if(!active) return;
 	// removes bias
-	targetspin = Min(targetspin,0.0f);  // not zero since its ok to let it fall to the limit
+	targetspin = (equality)?0:Min(targetspin,0.0f);  // not zero since its ok to let it fall to the limit
 }
 
 
@@ -307,29 +321,31 @@ void createdrive(RigidBody *rb0,RigidBody *rb1,Quaternion target,float maxtorque
 //	Quaternion r0 = Inverse(rb0->orientation*target);
 //	if(dot(r1,r0)>0.0f) r1 *= -1.0f;
 //	Quaternion dq = r1*r0  ;  // quat that takes a direction in r0+target orientation into r1 orientation
-
-	Quaternion dq = rb1->orientation * Inverse(rb0->orientation*target) ;  // quat that takes a direction in r0+target orientation into r1 orientation
+	Quaternion q0 = (rb0)?rb0->orientation:Quaternion();
+	Quaternion q1 = (rb1)?rb1->orientation:Quaternion();
+	Quaternion dq = q1 * Inverse(q0*target) ;  // quat that takes a direction in r0+target orientation into r1 orientation
 	if(dq.w<0) dq=-dq;
 	float3 axis     = safenormalize(dq.xyz()); // dq.axis();
 	float3 binormal = Orth(axis);
 	float3 normal   = cross(axis,binormal);
-	tmplimits.Add ( new LimitAngular(rb0,rb1,axis,-0.3f*(acosf(clamp(dq.w,-1.0f,1.0f))*2.0f)/physics_deltaT,maxtorque) );
+	tmplimits.Add ( new LimitAngular(rb0,rb1,axis,-physics_biasfactorjoint*(acosf(clamp(dq.w,-1.0f,1.0f))*2.0f)/physics_deltaT,maxtorque) );
 	tmplimits.Add ( new LimitAngular(rb0,rb1,binormal,0,maxtorque) );
 	tmplimits.Add ( new LimitAngular(rb0,rb1,normal  ,0,maxtorque) );
 }
 
-void createlimits(RigidBody *rb0,RigidBody *rb1, const float3 &rmin, const float3 &rxmax)
+void createlimits2(RigidBody *rb0,RigidBody *rb1, const float3 &axis, const float angle)
 {
 	LimitAngular *xa,*xb;
 	//tmplimits.Add ( (xa= new  LimitAngular(rb0,rb1,rb0->orientation.zdir(),asin(-magnitude(cross(rb0->orientation.xdir(),rb1->orientation.xdir()))))));
 	//xa->equality=0;
 	//tmplimits.Add ( (xb= new  LimitAngular(rb0,rb1,rotate(Inverse(rb0->orientation),float3(-1,0,0)),3.14f/2.0f)));
 	//xb->equality=0;
-	LimitCone *cone = new LimitCone(rb1,DegToRad(10.0f));
-	
+	//LimitCone *cone = new LimitCone(rb1,DegToRad(10.0f));
+	LimitCone *cone = new LimitCone(rb1,angle);
+
 	cone->rb0=rb0;
 	cone->rb1=rb1;
-	cone->normal0=cone->normal1=float3(1,0,0);
+	cone->normal0=cone->normal1=axis;
 
 	tmplimits.Add(cone);
 	{
@@ -343,6 +359,30 @@ void createlimits(RigidBody *rb0,RigidBody *rb1, const float3 &rmin, const float
 	//tmplimits.Add ( new LimitAngular(rb0,rb1,rb0->orientation.zdir(),0.03f/physics_deltaT*asin(-dot(rb0->orientation.zdir(),(cross(rb0->orientation.xdir(),rb1->orientation.xdir()))))));
 	//tmplimits.Add ( new LimitAngular(rb0,rb1,rb0->orientation.ydir(),0.03f/physics_deltaT*asin(-dot(rb0->orientation.ydir(),(cross(rb0->orientation.xdir(),rb1->orientation.xdir()))))));
 	//tmplimits.Add ( new LimitAngular(rb0,rb1,rotate(Inverse(rb0->orientation),float3(0,0,1)),0) );
+}
+
+void createlimits(RigidBody *rb0,RigidBody *rb1, const float3 &axis, float angle)
+{
+	// this creates an axis constraint on rb0 and rb1's x axis with no x limit.
+	// easy to change to any axis by multiplying joint frame on the rhs for both rb0 and rb1's orientations
+	if(angle!=0.0f) return createlimits2(rb0,rb1,axis,angle);
+
+	Quaternion jf = rb0->orientation  * RotationArc(float3(1,0,0),axis);  
+	Quaternion eq = Inverse(jf) * rb1->orientation * RotationArc(float3(1,0,0),axis);
+	Quaternion dq= eq*normalize(Quaternion(-eq.x,0,0,eq.w));
+	if(dq.w<0) dq=dq*-1;
+
+	LimitAngular *az= new  LimitAngular(rb0,rb1,jf.zdir(),physics_biasfactorjoint * 2 * -dq.z /physics_deltaT); 
+	LimitAngular *ay= new  LimitAngular(rb0,rb1,jf.ydir(),physics_biasfactorjoint * 2 * -dq.y /physics_deltaT); 
+	tmplimits.Add ( az);
+	tmplimits.Add ( ay);
+
+	LimitCone *cone = new LimitCone(rb1,DegToRad(45.0f));
+	cone->rb0=rb0;
+	cone->rb1=rb1;
+	cone->normal0=normalize(float3(0,-1,1));
+	cone->normal1=float3(0,0,1);
+	tmplimits.Add(cone);
 }
 
 void createnail(RigidBody *rb0,const float3 &p0,RigidBody *rb1,const float3 &p1)
@@ -1060,19 +1100,6 @@ void rbupdatepose(RigidBody *rb)
 }
 
 
-int physics_warmstart=1;
-EXPORTVAR(physics_warmstart);
-int physics_warmstartjoint=0;
-EXPORTVAR(physics_warmstartjoint);
-
-float physics_biasfactorjoint = 1.0f;
-float physics_biasfactorpositive = 0.3f;
-float physics_biasfactornegative = 0.3f;
-EXPORTVAR(physics_biasfactorjoint);
-EXPORTVAR(physics_biasfactorpositive);
-EXPORTVAR(physics_biasfactornegative);
-float physics_falltime_to_ballistic=0.2f;
-EXPORTVAR(physics_falltime_to_ballistic);
 
 LimitLinear::LimitLinear(RigidBody *_rb0,RigidBody *_rb1,const float3 &_position0,const float3 &_position1,const float3 &_normal,float _targetspeed,float _targetspeednobias,float _maxforce):
 	Limit(_rb0,_rb1),position0(_position0),position1(_position1),

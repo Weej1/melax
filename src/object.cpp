@@ -28,7 +28,6 @@ static String Uniqueify(const char *a)
 }
 Entity::Entity(const char *_name,int hashinit):id(Uniqueify(_name))
 {
-	EXPOSEMEMBER(id);
 	Objects.Add(this);
 }
 

@@ -10,8 +10,10 @@
 
 class BSPNode;
 class Model;
+class xmlNode;
 
 Model *ModelLoad(const char *filename);
+Model *ModelLoad(xmlNode *mnode);
 void ModelRender(Model* model);
 void ModelDelete(Model* model);
 void Line(const float3 &_v0,const float3 &_v1,const float3 &color_rgb);

@@ -32,12 +32,9 @@ class Vertex
 };
 
 
-class VertexS
+class VertexS : public Vertex
 {
   public:
-	float3  position;
-	float4  orientation;  // tangent space basis in quat form
-	float2  texcoord;	
 	byte4   bones;
 	float4  weights;
 	VertexS(){}

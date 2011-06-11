@@ -455,5 +455,6 @@ inline int maxdir(const T *p,int count,const T &dir)
 float3 CenterOfMass(const float3 *vertices, const int3 *tris, const int count) ;
 float3x3 Inertia(const float3 *vertices, const int3 *tris, const int count, const float3& com=float3(0,0,0)) ;
 float Volume(const float3 *vertices, const int3 *tris, const int count) ;
+int calchull(float3 *verts,int verts_count, int3 *&tris_out, int &tris_count,int vlimit); // computes convex hull see hull.cpp
 
 #endif // VEC_MATH_H

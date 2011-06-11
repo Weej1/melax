@@ -12,10 +12,10 @@
 #include "object.h"
 #include "bsp.h"
 
-class Camera : public Entity
+class Camera 
 {
   public:
-						Camera(char *_name="camera");
+						Camera();
 						~Camera();
 	void 				RenderSetUp(); // set the opengl projection and modelview matrices
 	float3				MapToScreen(float3 v);

@@ -416,22 +416,6 @@ void BrushManipulator::Render()
 
 
 
-char *physitcell(const char*)
-{
-	BrushManipulator *currentbrush=CurrentBrush();
-	if(!currentbrush) return "No Current Brush";
-	BSPNode *n =currentbrush->brush->bsp;
-	while(!n->isleaf) {n=n->under;}
-	Chuckable *c = new Chuckable(currentbrush->brush->id,n->convex,n->brep,currentbrush->brush->position);
-	Brush *b=currentbrush->brush;
-//	for(i=0;i<b->hash.slots_count;i++)if(b->hash.slots[i].used) if(b->hash.slots[i].value !="name") 
-//	{
-//		c->hash[b->hash.slots[i].key].Set(b->hash.slots[i].value.Get());
-//	}
-	delete currentbrush->brush;
-	return "OK, its your brush to throw around";
-}
-EXPORTFUNC(physitcell);
 
 Chuckable *brushtochuckable(Brush *brush)
 {
@@ -439,35 +423,19 @@ Chuckable *brushtochuckable(Brush *brush)
 	Array<Face*> faces;
 	BSPGetBrep(n,faces);
 	Chuckable *c = new Chuckable(brush->id,n,faces,brush->position,brush->shadowcast);
-	Brush *b=brush;
-//	for(i=0;i<b->hash.slots_count;i++)if(b->hash.slots[i].used) if(b->hash.slots[i].value.Get() !="name") // should this be .key.Get() instead??
-//	{
-//		c->hash[b->hash.slots[i].key].Set(b->hash.slots[i].value.Get());
-//	}
 	delete brush;
 	return c;
 }
 
-char *physit(const char*)
+char *makechuckable(const char*)
 {
 	BrushManipulator *currentbrush=CurrentBrush();
 	if(!currentbrush) return "No Current Brush";
 	brushtochuckable(currentbrush->brush);
-/*
-	BSPNode *n =currentbrush->brush->bsp;
-	Array<Face*> faces;
-	BSPGetBrep(n,faces);
-	Chuckable *c = new Chuckable(n,faces,currentbrush->brush->position,currentbrush->brush->shadowcast);
-	Brush *b=currentbrush->brush;
-	for(i=0;i<b->hash.slots_count;i++)if(b->hash.slots[i].used) if(b->hash.slots[i].value.Get() !="name") // should this be .key.Get() instead??
-	{
-		c->hash[b->hash.slots[i].key].Set(b->hash.slots[i].value.Get());
-	}
-	delete currentbrush->brush;
-*/
+
 	return "OK, its your brush to throw around";
 }
-EXPORTFUNC(physit);
+EXPORTFUNC(makechuckable);
 
 
 void BrushCreateManipulator(Brush *brush,int _active)
