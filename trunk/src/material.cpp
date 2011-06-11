@@ -218,37 +218,6 @@ int texgrabcount=0;
 int texgrab=0;
 EXPORTVAR(texgrab);
 
-String jacktexture(String name)
-{
-	if(!Textures.Exists(name))
-	{
-		return name + " no such texture";
-	}
-	LPDIRECT3DTEXTURE9 texture = Textures[name]->d3dtexture;
-	IDirect3DSurface9 *src;
-	texture->GetSurfaceLevel(0,&src) && VERIFY_RESULT;  // get level 0 surface so we know width and height
-	D3DSURFACE_DESC srcdesc;
-	src->GetDesc(&srcdesc) && VERIFY_RESULT;
-	D3DLOCKED_RECT srcdata;
-	src->LockRect(&srcdata , NULL , 0 );
-	static int hack;
-	hack = srcdesc.Format;
-	if(srcdesc.Format != D3DFMT_X8R8G8B8  && srcdesc.Format != D3DFMT_A8R8G8B8  )
-		return "not a texture format we understand";
-	for(unsigned int i=0;i< srcdesc.Width*srcdesc.Height ; i++ )
-	{
-		((unsigned char*)srcdata.pBits)[4* i + 0] = 0;    // b
-		((unsigned char*)srcdata.pBits)[4* i + 1] = 255;  // g
-		((unsigned char*)srcdata.pBits)[4* i + 2] = 0;    // r
-		((unsigned char*)srcdata.pBits)[4* i + 3] = 255;  // x
-	}
-	src->UnlockRect();
-	src->Release();
-	D3DXFilterTexture(texture,NULL,0,D3DX_DEFAULT);
-	return name + " jacked";
-}
-EXPORTFUNC(jacktexture);
-
 
 String jacktexture(String name,unsigned char *image,int w,int h)
 {
@@ -641,8 +610,8 @@ Material *MakeMaterial(xmlNode *elem)
 		LPD3DXBUFFER error;
 		assert(effect==NULL);
 		//HRESULT hr = ; // && VERIFY_RESULT
-		if(D3DXCreateEffectFromFile(g_pd3dDevice,en+"o",NULL,NULL,0,g_effectpool,&effect,&error) && 
-		   D3DXCreateEffectFromFile(g_pd3dDevice,en    ,NULL,NULL,0,g_effectpool,&effect,&error)) 
+		if(D3DXCreateEffectFromFile(g_pd3dDevice,en+"o",NULL,NULL,0,g_effectpool,&effect,&error))
+			if(D3DXCreateEffectFromFile(g_pd3dDevice,en    ,NULL,NULL,0,g_effectpool,&effect,&error)) 
 		{
 			char * buf= (char*)error->GetBufferPointer();
 			int i=3;

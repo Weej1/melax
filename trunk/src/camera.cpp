@@ -3,17 +3,6 @@
 //   Pretty Basic Camera Implementation
 //
 //
-// out of date code comment:
-// A note about the viewport property of the camera.
-// To make life convienent for the small app,
-// if you dont set the viewport here then this class
-// will do the best it can to render set up.
-// If you just have one camera that
-// you want rendered in the full window - in this case
-// your WM_SIZE callback should do the equiv of 
-//       glViewport(0,0,LOWORD(lParam), HIWORD(lParam));
-// Otherwise you will have to make sure to SetViewPort
-// for all active cameras after each resize.
 // 
 
 
@@ -29,22 +18,14 @@ LDECLARE(Camera,clipfar)
 LDECLARE(Camera,camdist)
 LDECLARE(Camera,viewangle)
 
-Camera::Camera(char *_name):Entity(_name) 
+Camera::Camera()
 {
-	assert(_name);
-	LEXPOSEOBJECT(Camera,"cammy");
-	EXPOSEMEMBER(target);
-	EXPOSEMEMBER(camdist);
+	LEXPOSEOBJECT(Camera,"camera");
 	target="player";
 	viewangle = 60.0f;
 	clipnear  = 0.1f;
 	clipfar   = 512.0f;
 	camdist   = 0.0f;
-	EXPOSEMEMBER(position);
-	EXPOSEMEMBER(orientation);
-	EXPOSEMEMBER(viewangle);
-	EXPOSEMEMBER(clipnear);
-	EXPOSEMEMBER(clipfar);
 	viewport[0]=viewport[1]=viewport[2]=viewport[3]=0;
 }
 Camera::~Camera(){

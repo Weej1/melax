@@ -105,11 +105,6 @@ Light::Light():Entity("lite")
 	enable=1;
 	extern lobj *rv_lobj;
 	rv_lobj = LEXPOSEOBJECT(Light,this->id);
-	EXPOSEMEMBER(enable);
-	EXPOSEMEMBER(position);
-	EXPOSEMEMBER(radius);
-	EXPOSEMEMBER(color);
-	EXPOSEMEMBER(shadowcast);
 	new LightManipulator(this);
 	lights.Add(this);
 }
@@ -197,8 +192,6 @@ public:
 Array<Spline*> Splines;
 Spline::Spline():Entity("spline")
 {
-	EXPOSEMEMBER(loop);
-	EXPOSEMEMBER(interval);
 	loop=0;
 	interval=1.0f; // parametric length of the curve.
 	Splines.Add(this);

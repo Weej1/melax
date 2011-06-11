@@ -129,8 +129,6 @@ inline StringIter &operator >>(StringIter &s,VertexS &v)
 
 Bone::Bone(const char *_name, Model *_model, Bone *_parent) : id(_name), model(_model), parent(_parent),geometry(NULL)
 {
-	EXPOSEMEMBER(position);
-	EXPOSEMEMBER(orientation);
 }
 
 Bone::~Bone()
@@ -621,7 +619,6 @@ String meshpath("./ models/ meshes/");
 
 Model *ModelLoad(const char *filename)
 {
-	int i,j;
 	xmlNode *e = NULL;
 	String f=filefind(filename,meshpath,".xml .ezm");
 	if(f=="")return NULL;
@@ -634,10 +631,16 @@ Model *ModelLoad(const char *filename)
 		delete e; 
 		return NULL;
 	}
+	Model *model = ModelLoad(mnode);
+	delete e;
+	return model;
+}
+Model *ModelLoad(xmlNode *mnode)
+{
 	Model *model = new Model();
 	model->bmin = float3( FLT_MAX, FLT_MAX, FLT_MAX);
 	model->bmax = float3(-FLT_MAX,-FLT_MAX,-FLT_MAX);
-	for(i=0;i<mnode->children.count;i++) 
+	for(int i=0;i<mnode->children.count;i++) 
 	  if(mnode->children[i]->tag=="mesh")
 	{
 		xmlNode *c = mnode->children[i];
@@ -672,12 +675,12 @@ Model *ModelLoad(const char *filename)
 		Array<VertexS> vertices;
 		ArrayImport(vertices,mnode->Child("mesh")->Child("vertexbuffer")->body,mnode->Child("mesh")->Child("vertexbuffer")->attribute("count").Asint());  // dont like having this here!!!
 		//ArrayImport(vertices,mnode->Child("mesh")->Child("vertexbuffer")->body,model->datameshes[0]->vertices.count);  // dont like having this here!!!
-		for(i=0;i<snode->children.count;i++)
+		for(int i=0;i<snode->children.count;i++)
 		{
 			xmlNode *bnode = snode->children[i];
 			if(bnode->tag != "bone") continue; // not a bone ?????
 			Bone *parent=NULL;
-			for(j=0;j<model->skeleton.count;j++)
+			for(int j=0;j<model->skeleton.count;j++)
 				if(bnode->hasAttribute("parent") && bnode->attribute("parent")==model->skeleton[j]->id)
 					parent = model->skeleton[j];
 			Bone *b = new Bone(bnode->attribute("name"),model,parent);
@@ -689,14 +692,13 @@ Model *ModelLoad(const char *filename)
 			b->position = AsFloat3(bnode->attribute("position"));  // local
 			b->basepose = b->parent ? b->parent->basepose * b->pose() : b->pose();  // base pose in localmost
 			Array<float3> points;
-			for(j=0;j<vertices.count;j++)
+			for(int j=0;j<vertices.count;j++)
 				for(int k=0;k<4;k++)
 					if(vertices[j].bones[k]==i && vertices[j].weights[k] > 0.35f)
 						points.Add(Inverse(b->basepose)*vertices[j].position);
 			int3 *tris;
 			int  tris_count;
 			assert(points.count);
-			extern int calchull(float3 *verts,int verts_count, int3 *&tris_out, int &tris_count,int vlimit); // fixme
 			if(calchull(points.element,points.count,tris,tris_count,40))
 				b->geometry = WingMeshCreate(points.element,tris,tris_count);
 			assert(b->geometry);
@@ -705,7 +707,7 @@ Model *ModelLoad(const char *filename)
 	xmlNode *anode = mnode->Child("animation");
 	if(anode)
 	{
-		for(i=0;i<anode->children.count;i++)
+		for(int i=0;i<anode->children.count;i++)
 		{
 			xmlNode *tnode = anode->children[i];
 			Bone *b=NULL;
@@ -717,7 +719,6 @@ Model *ModelLoad(const char *filename)
 		}
 	}
 	// todo: get bmin and bmax from file if available.
-	delete e;
 	return model;
 }
 

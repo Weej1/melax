@@ -226,7 +226,6 @@ BSPNode * BSPCompile(Array<Face *> &inputfaces,WingMesh *space,int side) {
 		int j;
 		Array<int3> tris;
 		Array<float3> verts;
-		extern int calchull(float3 *verts,int verts_count, int3 *&tris_out, int &tris_count,int vlimit=0);
 		for(i=0;i<inputfaces.count;i++) 
 			for(j=0;j<inputfaces[i]->vertex.count;j++)
 				verts.AddUnique(inputfaces[i]->vertex[j]);

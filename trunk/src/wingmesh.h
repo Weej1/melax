@@ -47,8 +47,7 @@ class WingMesh;
 
 #ifndef PLUGIN_3DSMAX
 #include "array.h"
-#include "bsp.h" // for plane
-
+class Face; // see bsp.h 
 
 class Collidable
 {
@@ -109,7 +108,7 @@ class WingMesh: public Collidable
 	Array<short>  fback;
 	int unpacked; // flag indicating if any unused elements within arrays
 	WingMesh():unpacked(0){}
-	virtual int		Support(const float3& dir)const {return maxdir(verts,dir);}  
+	virtual int		Support(const float3& dir)const {return maxdir(verts.element,verts.count,dir);}  
 	virtual float3	GetVert(int v)const{return verts[v];}
 };
 

@@ -9,12 +9,10 @@
 
 #include <assert.h>
 #include "smstring.h"
-#include "hash.h"
 #include "vecmath.h"
 #include "array.h"
 
 
-#define EXPOSEMEMBER(m) 
 
 class Entity;
 

@@ -56,7 +56,6 @@ int     focus;
 int     quitrequest;
 int     windowwidth=640,windowheight=480;
 int     windowx=50,windowy=50;
-float   winresreduction=1.0f;
 int 	Width  = windowwidth;
 int 	Height = windowheight;
 int     shiftdown=0;
@@ -67,7 +66,6 @@ EXPORTVAR(windowwidth);
 EXPORTVAR(windowheight);
 EXPORTVAR(windowx);
 EXPORTVAR(windowy);
-EXPORTVAR(winresreduction);
 EXPORTVAR(focus);
 EXPORTVAR(fps);
 EXPORTVAR(Width);
@@ -421,8 +419,8 @@ int resetdevice(const char *)
 	}
 	else // windowed
 	{
-		Width = (int)(windowwidth * winresreduction);
-		Height= (int)(windowheight* winresreduction);
+		Width = (int)(windowwidth );
+		Height= (int)(windowheight);
 	}
 	oneoverwidth=1.0f/Width;
 	oneoverheight=1.0f/Height;
@@ -638,7 +636,7 @@ LRESULT WINAPI MsgProc( HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam )
 			windowheight= HIWORD(lParam);
 			return 1;
 		case WM_EXITSIZEMOVE:
-			if(windowed && (Width != (int)(windowwidth * winresreduction) || Height!= (int)(windowheight* winresreduction)))
+			if(windowed && (Width != (int)(windowwidth ) || Height!= (int)(windowheight)))
 			{
 				resetdevice(NULL);
 			}
@@ -814,9 +812,11 @@ String screengrab(String filename)
 {
 	if(filename=="" || filename == " () ")
 	{
-		filename.sprintf("%s_%5.5d_.bmp",(const char*)screengrabprefix,screengrabcount);		
+		filename.sprintf("%s_%5.5d_.png",(const char*)screengrabprefix,screengrabcount);		
 		screengrabcount++;
 	}
+	if(!IsOneOf('.',filename)) 
+		filename << ".png";
 	HRESULT hr;
 	// get display dimensions
 	// this will be the dimensions of the front buffer
@@ -842,7 +842,7 @@ String screengrab(String filename)
 	}
 	//Finally, we call D3DXSaveSurfaceToFile() to create the BMP file, and release the temporary image surface:
 	// write the entire surface to the requested file
-	hr=D3DXSaveSurfaceToFile(filename,D3DXIFF_BMP,surf,NULL,NULL);
+	hr=D3DXSaveSurfaceToFile(filename,D3DXIFF_PNG,surf,NULL,NULL);
 	// release the image surface
 	// surf->Release();
 	// return status of save operation to caller

@@ -25,11 +25,14 @@ void CM(Chuckable *c);
 class Joint : public Entity
 {
   public:
-    float3 position0;
-	float3 position1;
 	Chuckable *chuckable0;
 	Chuckable *chuckable1;
+    float3 position0;
+	float3 position1;
+	Quaternion orientation;
+	float drivetorque;
 	int    active;
+	int directive; // flag for extra stuff we want this to do.  just some hacking for now
 	void update();
 	const float3 &SetPosition0(const float3 &_position0){position0=_position0;return position0;}
 	const float3 &SetPosition1(const float3 &_position1){position1=_position1;return position1;}
@@ -45,6 +48,8 @@ Joint::Joint(Chuckable *rb,Chuckable *_rb1):Entity("joint"),active(1)
 	chuckable0 = rb;  
 	chuckable1 = _rb1;
 	maxforce = FLT_MAX;
+	drivetorque = 0.0f;
+	directive=0;
 	Joints.Add(this);
 }
 Joint::~Joint() 
@@ -56,6 +61,9 @@ void Joint::update()
 	if(!active) return;
 	extern void createnail(RigidBody *rb0,const float3 &p0,RigidBody *rb1,const float3 &p1);
 	createnail(this->chuckable0,this->position0,this->chuckable1,this->position1);
+
+	extern void createdrive(RigidBody *rb0,RigidBody *rb1,Quaternion target,float maxtorque);
+	if(drivetorque>0.0f) createdrive(chuckable0,chuckable1,orientation,drivetorque);
 }
 void JointUpdate()
 {
@@ -89,6 +97,7 @@ class JointManipulator : public Manipulator , public Tracker
   public:
 	Joint *joint;
 	float3 mypos;
+	Quaternion& Orientation(){return joint->orientation;}
 	float3 &Position(){mypos = (joint->chuckable1)? rotate(joint->chuckable1->orientation,joint->position1)+joint->chuckable1->position : joint->position1; return mypos;} 
 	JointManipulator(Joint *_joint):joint(_joint){joint->trackers.Add(this);Position()=(joint->chuckable1)?joint->chuckable1->position+rotate(joint->chuckable1->orientation,joint->position1):joint->position1;}
 	void PositionUpdated()
@@ -107,6 +116,16 @@ class JointManipulator : public Manipulator , public Tracker
 	}
 	int KeyPress(int k)
 	{
+		if(k==']' || k=='}') 
+		{
+			joint->drivetorque = Max(1.0f,joint->drivetorque*2.0f);
+			return 1;
+		}
+		if(k=='[' || k=='{') 
+		{
+			joint->drivetorque = floorf(joint->drivetorque/2.0f);
+			return 1;
+		}
 		if(k=='\b')
 		{
 			delete joint;
@@ -137,15 +156,6 @@ Chuckable::Chuckable(const char * name,WingMesh *_geometry,const Array<Face *> &
 	render=1;
 	//position=_position;
 	LEXPOSEOBJECT(Chuckable,id);
-	EXPOSEMEMBER(position);
-	EXPOSEMEMBER(orientation);
-	EXPOSEMEMBER(rotation);  // angular
-	EXPOSEMEMBER(momentum);  // linear
-	EXPOSEMEMBER(message);
-	//EXPOSEMEMBER(damping);
-	EXPOSEMEMBER(friction);
-	EXPOSEMEMBER(collide);
-	EXPOSEMEMBER(render);
 	Chuckables.Add(this);
 	model=NULL;
 	GBB(this);
@@ -159,16 +169,6 @@ Chuckable::Chuckable(const char * name,BSPNode *_bsp,const Array<Face *> &_faces
 	//position=_position;
 	render=1;
 	LEXPOSEOBJECT(Chuckable,id);
-	EXPOSEMEMBER(position);
-	EXPOSEMEMBER(orientation);
-	EXPOSEMEMBER(rotation);  // angular
-	EXPOSEMEMBER(momentum);  // linear
-	EXPOSEMEMBER(massinv);
-	EXPOSEMEMBER(message);
-	//EXPOSEMEMBER(damping);
-	EXPOSEMEMBER(friction);
-	EXPOSEMEMBER(collide);
-	EXPOSEMEMBER(render);
 	Chuckables.Add(this);
 	model=NULL;
 	GBB(this);
@@ -539,38 +539,45 @@ public:
 	Array<Joint*> joints;
 	Character(String _name);
 	~Character();
-	void MakePhysical();
+	void MakePhysical(xmlNode *mnode);
 	void Drive();
 	void Render();
 };
 Array<Character*> characters;
 Character::Character(String _name):Entity(_name)
 {
-	EXPOSEMEMBER(position);
-	EXPOSEMEMBER(orientation);
 	characters.Add(this);
 }
 Character::~Character()
 {
 	characters.Remove(this);
 }
-void Character::MakePhysical()
+int character_jointignoreall=0;
+EXPORTVAR(character_jointignoreall);
+void Character::MakePhysical(xmlNode *m)
 {
-	int i,j;
-	for(i=0;i<model->skeleton.count;i++)
+	// i hate the way things are split between loading the physics-agnostic mesh/model and loading the rest of the stuff here
+	int j;
+	for(int i=0;i<model->skeleton.count;i++)
 	{
+		xmlNode *bnode = m->Child("skeleton")->children[i];
+		assert(bnode);
 		Bone *bone = model->skeleton[i];
 		Array<Face*> faces;
 		assert(bone->geometry);
 		WingMeshToFaces(bone->geometry,faces);
 		Chuckable *rb = new Chuckable(id + "_" + bone->id,bone->geometry,faces,bone->position);
 		//rb->id = id + "_" + bone->id;
-		for(j=0;j<bods.count;j++) 
+		if(bnode->Child("mass"))
+			rbscalemass(rb,bnode->Child("mass")->body.Asfloat());
+		xmlimport(rb,GetClass("Chuckable"),bnode);
+
+		for(j=0;character_jointignoreall && j<bods.count;j++) 
 		{
 			rb->ignore.Add(bods[j]);
 			bods[j]->ignore.Add(rb);
 		}
-		assert(j==bods.count);
+		j=bods.count;
 		while(j>=0 && model->skeleton[j]!= bone->parent) { j--; }
 		if(j>=0)
 		{
@@ -579,8 +586,13 @@ void Character::MakePhysical()
 			Joint *joint = new Joint(rb0,rb);
 			joint->position0  = bone->position - rb0->com;
 			joint->position1  = -rb->com;
-			//rb1->ignore.Add(rb);  
-			//rb->ignore.Add(rb1);
+			if(bnode->Child("directive"))
+				joint->directive = bnode->Child("directive")->body.Asint();
+			if(!character_jointignoreall)
+			{
+				rb0->ignore.Add(rb);  
+				rb->ignore.Add(rb0);
+			}
 			joints.Add(joint);
 		}
 		bods.Add(rb);
@@ -589,8 +601,8 @@ void Character::MakePhysical()
 
 int character_jointlimithack=0;
 EXPORTVAR(character_jointlimithack);
-float charactertorque=1000.0f;
-EXPORTVAR(charactertorque);
+float character_torque=1000.0f;
+EXPORTVAR(character_torque);
 void Character::Drive()
 {
 	int i,j;
@@ -606,15 +618,23 @@ void Character::Drive()
 		float t = fmodf(GlobalTime,b->animation[b->animation.count-1].time);
 		Quaternion qdrive = GetPose(b->animation,t).orientation;
 
-
 // for rendering only skinning hack bugfix aaarrrgggg:
 //if(dot(joint->chuckable0->orientation,joint->chuckable1->orientation)<0)
 // joint->chuckable1->orientation = - joint->chuckable1->orientation;
 		extern void createdrive(RigidBody *rb0,RigidBody *rb1,Quaternion target,float maxtorque);
-		createdrive(joint->chuckable0,joint->chuckable1,qdrive,charactertorque);
-		extern void createlimits(RigidBody *rb0,RigidBody *rb1, const float3 &rmin, const float3 &rxmax);
+		createdrive(joint->chuckable0,joint->chuckable1,qdrive,character_torque);
+		extern void createlimits(RigidBody *rb0,RigidBody *rb1, const float3 &axis, const float coneangle);
+		extern void createlimits2(RigidBody *rb0,RigidBody *rb1, const float3 &axis, const float3 &rxmax);
 		if(character_jointlimithack)
-			createlimits(joint->chuckable0,joint->chuckable1, float3(0,0,0),float3(0,0,0));
+			createlimits(joint->chuckable0,joint->chuckable1, float3(0,0,0),0);
+		if(joint->directive==1)   // just prototyping some ideas here
+		{
+			createlimits(joint->chuckable0,joint->chuckable1, float3(1,0,0),DegToRad(10.0f));
+		}
+		if(joint->directive==2)
+		{
+			createlimits(joint->chuckable0,joint->chuckable1, float3(1,0,0),DegToRad(0.0f));
+		}
 			
 	}
 }
@@ -658,13 +678,27 @@ void CharactersRender()
  
 Character *CharacterSpawn(String filename,float3 offset)
 {
-	Model *model = ModelLoad(filename);
+	xmlNode *e = NULL;
+	String f=filefind(filename,"models",".xml .ezm .chr");
+	if(f=="")return NULL;
+	e=XMLParseFile(f);
+	assert(e);
+	if(!e)return NULL;
+	xmlNode *mnode = (e->tag=="model")?e:e->Child("model");
+	if(mnode==NULL)
+	{
+		delete e; 
+		return NULL;
+	}
+	Model *model = ModelLoad(mnode);
 	if(!model) return NULL;;
 	Character *c = new Character(splitpathfname(filename));
 	c->model = model;
-	c->MakePhysical();
+	c->MakePhysical(mnode);
 	for(int i=0;i<c->bods.count;i++) 
 		c->bods[i]->position += offset;
+
+	delete e;
 	return c;
 }
 String chr(String param)

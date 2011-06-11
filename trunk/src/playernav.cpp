@@ -49,14 +49,6 @@ class Player: public Entity
 	Player():Entity("player"),height(1.75f),radius(0.3f)
 	{
 		LEXPOSEOBJECT(Player,"bob");
-		EXPOSEMEMBER(position);
-		EXPOSEMEMBER(positionnew);
-		EXPOSEMEMBER(positionold);
-		EXPOSEMEMBER(orientation);
-		EXPOSEMEMBER(velocity);
-		EXPOSEMEMBER(height);
-		EXPOSEMEMBER(radius);
-		EXPOSEMEMBER(headtilt);
 	}
 	void wasd_fly();
 	void spinmove(const float3 &cr);
