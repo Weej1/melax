@@ -1,3 +1,11 @@
+//
+// half-edge winged mesh data structure
+// (c) stan melax 2007
+//
+// primary usage of this module is to represent and operate 
+// on convex cells of space in the spatial partition tree.
+// Can also be used to represent convex shapes for rigidbody simulation.
+// 
 
 #include <math.h>
 #include <assert.h>

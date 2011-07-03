@@ -67,7 +67,7 @@ class vec2
  public:
 	T x,y;
 	__forceinline vec2(){x=0;y=0;}
-	__forceinline vec2(float _x,float _y){x=_x;y=_y;}
+	__forceinline vec2(const T &_x, const T &_y){x=_x;y=_y;}
 	__forceinline T& operator[](int i) {return ((T*)this)[i];}
 	__forceinline const T& operator[](int i) const {return ((T*)this)[i];}
 };

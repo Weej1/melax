@@ -5,11 +5,13 @@
     <file>pyrm</file>
     <position>-3.25 0 -0.5</position>
     <onclick>intersect</onclick>
+    <message>click on this object to boolean subtract it</message>
   </brush>
   <brush>
     <file>pyrm</file>
     <position>3.25 0 -0.5</position>
     <onclick>intersect</onclick>
+    <message>click on this object to boolean subtract it</message>
   </brush>
 
 
@@ -20,6 +22,7 @@
     <shadowcast>1</shadowcast>
     <filename>arch.bsh</filename>
     <onclick>intersect</onclick>
+    <message>click on this object to boolean subtract it</message>
 
     <file>arch</file>
   </brush>
@@ -31,6 +34,7 @@
     <filename>C:\temp\gcode_test\arch.bsh</filename>
     <collide>1</collide>
     <onclick>intersect</onclick>
+    <message>click on this object to boolean subtract it</message>
 
     <file>arch</file>
   </brush>
@@ -42,6 +46,7 @@
     <filename>C:\temp\gcode_test\arch.bsh</filename>
     <collide>1</collide>
     <onclick>intersect</onclick>
+    <message>click on this object to boolean subtract it</message>
 
     <file>arch</file>
   </brush>
@@ -73,6 +78,8 @@
     <mergeable>1</mergeable>
     <bspclip>0</bspclip>
     <file>pizzabox</file>
+    <message>just a platform you can jump on</message>
+
   </brush>
   <brush>
     <highlight>0</highlight>
@@ -82,6 +89,7 @@
     <collide>1</collide>
     <file>archhall</file>
     <onclick>intersect</onclick>
+    <message>click on this object to boolean subtract it</message>
   </brush>
   <light>
     <enable>1</enable>

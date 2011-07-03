@@ -31,7 +31,7 @@ EXPORTVAR(fresnelpower);
 LPD3DXEFFECTPOOL g_effectpool=NULL;
 //------------------ textures ----------------------
 
-String texturepath("./ textures/ textures/");
+String texturepath("./ textures/");
 String texturesuffix("jpg dds tga png");
 EXPORTVAR(texturepath);
 
@@ -43,8 +43,6 @@ public:
 	Texture(String _name,LPDIRECT3DTEXTURE9 _d3dtexture=NULL);
 	~Texture();
 	void Release();
-	void CreateRenderTarget(D3DFORMAT format);
-	int  isrendertarget;
 };
 
 static Hash<String,Texture*> Textures;
@@ -62,15 +60,7 @@ Texture::~Texture()
 {
 	Release();
 }
-static Hash<String,LPDIRECT3DTEXTURE9> g_textures;
-void Texture::CreateRenderTarget(D3DFORMAT format)
-{
-	Release();
-	extern int Width,Height;
-	g_pd3dDevice->CreateTexture(Width,Height,1,D3DUSAGE_RENDERTARGET,format,D3DPOOL_DEFAULT,&d3dtexture ,NULL)&& VERIFY_RESULT;
-	g_textures[name]=d3dtexture;
-	isrendertarget=1;
-}
+
 
 static Texture* GetTexture(String &texturename)
 {
@@ -116,23 +106,14 @@ static LPDIRECT3DTEXTURE9 GetTextureHACK(String &texturename)
 	return texture;
 }
 
-int TexWidth(LPDIRECT3DTEXTURE9 t)
+int2 TexWidthHeight(LPDIRECT3DTEXTURE9 t)
 {
 	IDirect3DSurface9 *surf;
 	t->GetSurfaceLevel(0,&surf) && VERIFY_RESULT;
 	D3DSURFACE_DESC surfacedesc;
 	surf->GetDesc(&surfacedesc) && VERIFY_RESULT;
 	surf->Release();
-	return surfacedesc.Width;
-}
-int TexHeight(LPDIRECT3DTEXTURE9 t)
-{
-	IDirect3DSurface9 *surf;
-	t->GetSurfaceLevel(0,&surf) && VERIFY_RESULT;
-	D3DSURFACE_DESC surfacedesc;
-	surf->GetDesc(&surfacedesc) && VERIFY_RESULT;
-	surf->Release();
-	return surfacedesc.Height;
+	return int2((int)surfacedesc.Width, (int)surfacedesc.Height);
 }
 
 unsigned char filtermap(unsigned char *image,int x,int y,int w,int h,int src_pixelwidth)
@@ -277,95 +258,6 @@ String texcompileheightmaps(String s)
 EXPORTFUNC(texcompileheightmaps);
 
 
-Texture *diffusetex;
-Texture *normaltex;
-Texture *positiontex;
-Texture *consoletex;
-IDirect3DSurface9 *defaultrendertarget; 
-
-void rendertargetsrelease()
-{
-	diffusetex->Release();
-	normaltex->Release();
-	positiontex->Release();
-	if(consoletex) consoletex->Release();
-}
-void createrendertargets()
-{
-	rendertargetsrelease();
-	diffusetex->CreateRenderTarget(D3DFMT_A8R8G8B8);
-	normaltex->CreateRenderTarget(D3DFMT_A8R8G8B8);
-	positiontex->CreateRenderTarget(D3DFMT_R32F);
-}
-void inittargets()
-{
-	extern int Width,Height;
-	if(!consoletex)
-		consoletex  = new Texture("consoletex" );
-	if(!diffusetex)
-	{
-		diffusetex  = new Texture("diffusetex" );
-		normaltex   = new Texture("normaltex"  );
-		positiontex = new Texture("positiontex");
-	}
-	//createrendertargets();
-}
-
-void SetRenderTarget(int slot,Texture *t)
-{
-	IDirect3DSurface9 *surf;
-	t->d3dtexture->GetSurfaceLevel( 0, &surf) && VERIFY_RESULT;
-	g_pd3dDevice->SetRenderTarget( slot,surf);
-	surf->Release();
-}
-
-
-void deferred_settargets()
-{
-	assert(diffusetex);
-	if(!diffusetex->d3dtexture) createrendertargets();
-	g_pd3dDevice->GetRenderTarget(0,&defaultrendertarget); // so we can restore it later 
-	SetRenderTarget(0,diffusetex);
-	SetRenderTarget(1,normaltex);
-	SetRenderTarget(2,positiontex);
-}
-
-void deferred_restoretargets()
-{
-	 assert(defaultrendertarget);
-	g_pd3dDevice->SetRenderTarget(0,defaultrendertarget);
-	g_pd3dDevice->SetRenderTarget(1,NULL);
-	g_pd3dDevice->SetRenderTarget(2,NULL);
-	defaultrendertarget->Release();
-	defaultrendertarget=NULL;
-}
-
-float3 cmatcolor(0,0,0.25f);
-EXPORTVAR(cmatcolor);
-String consolemat(String s)
-{
-	if(!consoletex) consoletex  = new Texture("consoletex" );
-	if(!consoletex->d3dtexture) consoletex->CreateRenderTarget(D3DFMT_A8R8G8B8);
-	assert(consoletex->isrendertarget);
-
-	g_pd3dDevice->GetRenderTarget(0,&defaultrendertarget); // so we can restore it later 
-	SetRenderTarget(0,consoletex);
-	g_pd3dDevice->Clear( 0, NULL, D3DCLEAR_TARGET|D3DCLEAR_ZBUFFER|D3DCLEAR_STENCIL,
-						 D3DCOLOR_COLORVALUE(cmatcolor.x,cmatcolor.y,cmatcolor.z,1.0f), 1.0f, 0L );
-
-	g_pd3dDevice->BeginScene();// Begin the scene
-	// ok render stuff here!!!
-	extern void DrawText(float x,float y,const char *s);
-	DrawText(0,0,s);
-    g_pd3dDevice->EndScene(); 	// End the scene
-	assert(defaultrendertarget);
-	g_pd3dDevice->SetRenderTarget(0,defaultrendertarget);  // restore regular rendertarget
-	defaultrendertarget->Release();
-	defaultrendertarget=NULL;
-	return "ok";
-}
-EXPORTFUNC(consolemat);
-
 
 //
 // The EffectParameter objects are the linkages between effect variables and variables/objects in the running application.
@@ -452,28 +344,6 @@ class Material : public Entity
 Array<Material*> Materials;
 Hash<String,LPD3DXEFFECT> Effects;
 
-Texture *foo;
-String createfoo(String)
-{
-	if(foo) return "already created";
-	foo=new Texture("foo");
-	foo->CreateRenderTarget(D3DFMT_A16B16G16R16F);
-	SetRenderTarget(3,foo);
-	return "created foo";
-}
-EXPORTFUNC(createfoo);
-String releasefoo(String)
-{
-	if(!foo) return "no foo you fool";
-	g_pd3dDevice->SetRenderTarget(3,NULL);
-	Effects["effects/deferredlighting.fx"]->SetTexture("diffusetex",foo->d3dtexture);
-	Effects["effects/deferredlighting.fx"]->SetTexture("diffusetex",NULL);
-	foo->Release();
-	delete foo;
-	foo=NULL;
-	return "ok";
-}
-EXPORTFUNC(releasefoo);
 
 
 void effectlostdevice()
@@ -541,14 +411,7 @@ Material::Material(String _name,int _special):Entity(String("material_")+_name),
 	fresnel = float3(0.1f,0.0f,4.0f); // scale bias power
 	diffusecoef = 1.0f;
 	LEXPOSEOBJECT(Material,this->id);
-	//EXPOSEMEMBER(technique);
-	//EXPOSEMEMBER(emissive);
-	//EXPOSEMEMBER(gloss);
-	//EXPOSEMEMBER(reflectivity);
-	//EXPOSEMEMBER(fresnel);
-	//EXPOSEMEMBER(diffusecoef);
-	//EXPOSEMEMBER(draw);
-	//EXPOSEMEMBER(lightpasses);
+
 	draw= 1;	
 	lightpasses =1;
 	technique = "t0";
@@ -755,7 +618,6 @@ void LoadMaterial(char *fname)
 	if(!g_effectpool)
 	{
 		D3DXCreateEffectPool(&g_effectpool) && VERIFY_RESULT;
-		inittargets(); // initial  rendertargets for deferred lighting, this lets materials link up with these textures
 	}
 	assert(g_effectpool);
 	LoadMatFile(fname);
@@ -773,8 +635,6 @@ void LoadMaterials(void*)
 	if(!g_effectpool)
 	{
 		D3DXCreateEffectPool(&g_effectpool) && VERIFY_RESULT;
-		inittargets(); // initial  rendertargets for deferred lighting, this lets materials link up with these textures
-
 	}
 	assert(g_effectpool);
 	int i;
@@ -823,14 +683,6 @@ int hack_usealpha=0;
 EXPORTVAR(hack_usealpha);
 
 
-void MaterialUnload(int k)
-{
-	Material *mat=Materials[k];
-	for(int i=0;i<mat->textures.count;i++) {
-		if(mat->textures[i].var->isrendertarget)
-			mat->textures[i].effect->SetTexture(mat->textures[i].handle,NULL);
-	}
-}
 
 LPD3DXEFFECT MaterialUpload(Material *mat)
 {

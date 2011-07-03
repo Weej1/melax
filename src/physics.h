@@ -1,3 +1,11 @@
+//
+// Rigidbody Physics
+// (c) Stan Melax 1998-2008
+//
+// See physics.cpp for more info
+//
+
+
 #ifndef PHYSICS_H
 #define PHYSICS_H
 

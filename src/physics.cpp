@@ -1,8 +1,25 @@
 //
-// Impulse Physically Based Modelling
+// Rigidbody Physics Stuff
+// Sequential Iterative Impulse approach
+// (c) Stan Melax 1998-2008
+// with some recent minor code cleanups 2011
 //
-// attempted to play with positioncorrection
-// still needs tweaking
+// Feel free to use and/or learn from the following code.  Code provided as is.
+// Author assumes no obligation for correctness of support.
+//
+// What's here is typical of a small basic 3D physics engine.  
+// Primary references include Baraff&Witkin's notes and many threads on Erwin's bullet website.
+// I might do some things slightly different than other engines such as
+// using a runge-kutta integrator for the position updates so i can preserve angular momentum
+// instead of keeping angular spin constant.  
+// No broadphase - i was only doing small demos exploring other concepts at this point.
+// 
+// I've been working on this sort of tech for a while often just implementing what I need at the time.
+// i.e. this and related modules could be characterized as a personal research sandbox.
+// I try to keep code minimal yet have some degree of generality (without "overdesign")
+// and have the code do everthing I need.  Not claiming the architecture is yet perfect.
+// This module maintains a number of rigidbodies and implements the update solver.
+//
 
 #include <stdio.h>
 #include <float.h>
@@ -335,7 +352,6 @@ void createdrive(RigidBody *rb0,RigidBody *rb1,Quaternion target,float maxtorque
 
 void createlimits2(RigidBody *rb0,RigidBody *rb1, const float3 &axis, const float angle)
 {
-	LimitAngular *xa,*xb;
 	//tmplimits.Add ( (xa= new  LimitAngular(rb0,rb1,rb0->orientation.zdir(),asin(-magnitude(cross(rb0->orientation.xdir(),rb1->orientation.xdir()))))));
 	//xa->equality=0;
 	//tmplimits.Add ( (xb= new  LimitAngular(rb0,rb1,rotate(Inverse(rb0->orientation),float3(-1,0,0)),3.14f/2.0f)));

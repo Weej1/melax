@@ -677,7 +677,7 @@ void BSPMakeBrep(BSPNode *r,Array<Face*> &faces)
 	}
 }
 
-void BSPClipFace(BSPNode *n,Face* face,const float3 &position,Array<Face*> &under,Array<Face*> &over,Array<Face*> &created)
+static void BSPClipFace(BSPNode *n,Face* face,const float3 &position,Array<Face*> &under,Array<Face*> &over,Array<Face*> &created)
 {
 	if(n->isleaf==UNDER)
 	{

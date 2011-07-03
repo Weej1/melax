@@ -1,8 +1,31 @@
 
 //
 // hull and convex utility routines 
+//  (c) Stan Melax 2004
+// 
+// Note:  The code here actually predates any code used by novodex as well as 
+// the 'stanhull'  version released on the web at
+// codesuppoitory.blogspot.com, see that version for something slightly more robust.
+// btw someone else picked the name 'stanhull' - no egos here.  :)
+// Although, I was pleasantly surprised to see many people that found it useful.  
+// Thanks for all the positive feedback.
+// Erwin may now (2011) have more recent hull code on the Bullet site that seamlessly handles 
+// both 2D and 3D cases.  
+// 
+// My main objective when writing this code was to just do 3D convex hulls, but only 
+// up to a certain number of vertices.  
+// Starting from a tetrahedron, the algorithm iteratively selects a vertex and 
+// expands the convex hull.
+// I use a greedy approach to pick the volume maximizing vertex at each step.
+// This is potentially O(n*n) or O(n*c) for final hull with c verts.
+// quickhull is about doing the complete convex hull O(n lg(n)).  
+// For offline processing the runtime wasn't an issue.  
+// Furthermore, prefer a significantly reduced hull especially since a convex hull is already
+// an approximation of the actual geometry anyways.  16 or 32 verts is usually more than enough.
 //
-//
+// 
+// 
+
 #include <assert.h>
 #include "vecmath.h"
 #include "array.h"

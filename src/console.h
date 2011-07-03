@@ -1,29 +1,30 @@
-/*
- *              A Small Simple Interpreter and Binding System 
- *
- *           by Stan Melax (c) March 1998
- *           http://www.melax.com
- *     
- *
- *  Global variables and functions are exposed to the 
- *  interpretor by using the EXPORTVAR and EXPORTFUNC macros.
- *  For Example, in your code:
- *
- *				void f(char *s) {
- *					...
- *				}
- *				EXPORTFUNC(f);
- *
- *				int x;
- *				EXPORTVAR(x);
- *
- *
- *  The function:
- *			FuncInterp(char *string_to_be_interpreted);
- *  is what you use to interpret a given commandline or string.
- *  It finds the exported function/variable and calls/sets it.
- *
- */
+//
+//
+//  A Small Simple Interpreter and Binding System 
+// 
+//   by Stan Melax (c) March 1998
+//      http://www.melax.com
+//      
+//   See corresponding .cpp files for more information.
+//
+//   Global variables and functions are exposed to the  *  interpretor by using the EXPORTVAR and EXPORTFUNC macros.
+//   For Example, in your code:
+// 
+// 				void f(char *s) {
+// 					...
+// 				}
+// 				EXPORTFUNC(f);
+// 
+// 				int x;
+// 				EXPORTVAR(x);
+// 
+// 
+//   The function:
+// 			FuncInterp(char *string_to_be_interpreted);
+//   is what you use to interpret a given commandline or string.
+//   It finds the exported function/variable and calls/sets it.
+// 
+//
 
 #ifndef SM_CONSOLE_H
 #define SM_CONSOLE_H
