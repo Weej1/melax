@@ -1,4 +1,14 @@
-
+//
+// gjk algorithm
+// by stan melax 2007
+//
+// Just a basic gjk implementation using some wisdom described in Gino's papers on the algorithm. 
+// Essecntially take two convex shapes and their poses and return separating plane.
+//
+// For the moving version, Jay Stelly gets credit for the brilliant  tunnel idea to 
+// search the polytope in reverse to determine time of impact.  
+// Idea perhaps not published, but might be described on molly rocket or bullet forums.
+//
 
 #include <assert.h>
 

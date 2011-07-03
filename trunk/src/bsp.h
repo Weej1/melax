@@ -1,7 +1,16 @@
 //
 //      BSP
-//
-//
+//  (c) Stan Melax 1998-2007
+//  
+// BSPs? really? are they still useful?  
+// Clearly, Spatial structures are still necessary to implement anything useful in a 3D 
+// interactive application.  
+// Admittedly overlapping hierarchies and polygon soup approaches are easier to implement.
+// An advantage with BSP is the ability to do interesting things  
+// from just knowing if a point xyz is in empty space or inside a solid volume all the way to 
+// operations such as computational solid geometry (intersections and unions).
+// 
+// 
 
 #ifndef SMBSP_H
 #define SMBSP_H

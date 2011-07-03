@@ -510,6 +510,14 @@ void RenderChuckables()
 		}
 	}
 }
+int ChuckablesHitCheck(const float3 &v0, float3 v1,float3 *impact)
+{
+	*impact=v1;
+	int h=0;
+	for(int i=0;i<Chuckables.count;i++)
+		h|=Chuckables[i]->HitCheck(v0,*impact,impact);
+	return h;
+}
 
 String chuckdelall(String s)
 {
@@ -599,6 +607,8 @@ void Character::MakePhysical(xmlNode *m)
 	}
 }
 
+float animationspeed=0.0f;
+EXPORTVAR(animationspeed);
 int character_jointlimithack=0;
 EXPORTVAR(character_jointlimithack);
 float character_torque=1000.0f;
@@ -615,7 +625,7 @@ void Character::Drive()
 		extern Pose GetPose(const Array<KeyFrame> &animation,float t);
 		Bone *b = model->skeleton[j];
 		extern float GlobalTime;
-		float t = fmodf(GlobalTime,b->animation[b->animation.count-1].time);
+		float t = fmodf(GlobalTime*animationspeed,b->animation[b->animation.count-1].time);
 		Quaternion qdrive = GetPose(b->animation,t).orientation;
 
 // for rendering only skinning hack bugfix aaarrrgggg:

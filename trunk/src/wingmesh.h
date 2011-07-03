@@ -1,5 +1,7 @@
 //
 //   WingMesh class 
+//  (c) stan melax 2007
+//
 //
 // A mesh class designed to support many general mesh operations and be efficient.
 // This class uses halfedge structures and is designed to work with manifold meshes.
@@ -42,11 +44,9 @@
 
 #include <assert.h>
 #include "vecmath.h"
+#include "array.h"
 
 class WingMesh;
-
-#ifndef PLUGIN_3DSMAX
-#include "array.h"
 class Face; // see bsp.h 
 
 class Collidable
@@ -112,7 +112,6 @@ class WingMesh: public Collidable
 	virtual float3	GetVert(int v)const{return verts[v];}
 };
 
-#endif
 
 WingMesh* Dual(WingMesh *m,float r=1.0f,const float3 &p=float3(0,0,0));
 WingMesh* WingMeshCreate(float3 *verts,int3 *tris,int n);

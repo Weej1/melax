@@ -1,6 +1,8 @@
 //
 //   Windows Setup Stuff
 //
+// Code here was written by: stan melax (Copyright 2003)
+//
 // If your video card gives you grief, then try
 // changing:  D3DDEVTYPE_HAL to D3DDEVTYPE_REF
 //
@@ -433,8 +435,7 @@ int resetdevice(const char *)
 	vsync_current = vsync;
 	effectlostdevice();
 	cuberelease();
-	extern void rendertargetsrelease();
-	rendertargetsrelease();
+
 	HRESULT hr = g_pd3dDevice->Reset(&d3dpp);
 	assert(hr==0);
 	effectresetdevice();

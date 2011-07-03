@@ -1,5 +1,10 @@
 //
-// By S Melax
+//  Typical template dynamic array container class.
+//  By S Melax 1998
+// 
+// I see no reason to have any copyright or licence on a header file like this.
+// As far as i'm concerned, anyone is free to use, inspect, learn from, or ignore
+// the code here as they see fit.  
 //
 // A very simple template array class.
 // Its easiest to understand this array
@@ -105,7 +110,7 @@ template <class Type> Array<Type> &Array<Type>::copy(const Array<Type> &array)
 }
 template <class Type> Array<Type> &Array<Type>::operator=( Array<Type> &array)
 {
-	if(array.array_size<0)
+	if(array.array_size<0)  //  negative number means steal the data buffer instead of copying
 	{
         delete[] element;
 		element = array.element;

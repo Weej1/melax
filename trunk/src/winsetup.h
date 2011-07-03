@@ -2,6 +2,14 @@
 //   Windows Setup Stuff
 //
 // Code here was written by: stan melax (Copyright 2003)
+// with some minor updates since then (up to 2011)
+// Currently windows and direct3d only - no opengl codepaths right now.
+//
+// The minimalistic objective is to enable the easiest possible code for building 3D applications. 
+// i.e. without a lot of API baggage or programmer style/religion being shoved down your throat,
+// and without depending on some sort of samples infrasturcture with dependancies you may not want.
+// No inheriting from some class and filling in a bunch of virtual functions.
+// You write a main() with a while(){} loop.
 //
 // If you are building a new project and are getting link errors...
 // Dont forget to add the libraries:  d3d9.lib d3dx9.lib winmm.lib
