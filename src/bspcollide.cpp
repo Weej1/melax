@@ -1,7 +1,9 @@
- 
-
 //
-// bsp usage routines
+//      BSP
+//  (c) Stan Melax 1998-2007
+//  see file bsp.h 
+//
+// this module provides collision support
 //
 //
 

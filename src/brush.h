@@ -1,3 +1,13 @@
+//
+//      
+//  (c) Stan Melax 1998-2007
+//
+// this module implements an object layer above bsp's, geometry, and mesh classes so 
+// we can load, save, edit, interact, and otherwise work with them within a 3d application.
+//
+// a "brush" object is static geometry (not a simulated rigidbody).
+// i'm not too attached to this.  could probably throw this design away and start fresh.
+
 
 #ifndef SM_BRUSH_H
 #define SM_BRUSH_H

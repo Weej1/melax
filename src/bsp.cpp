@@ -2,7 +2,9 @@
 //
 //              BSP 
 // 
+// (c) Stan Melax 1998-2007
 //
+// bsp compiler
 //
 
 

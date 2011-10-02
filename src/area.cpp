@@ -1,6 +1,18 @@
 //
-// the module that deals with the static world/area mesh and bsp
+//      
+//  (c) Stan Melax 1998-2007
 //
+// this higher level module implements an object layer above bsp's, geometry, and mesh classes so 
+// we can load, save, edit, interact, and otherwise work with them within a 3d application.
+//
+// a "brush" object is static geometry (not a simulated rigidbody).
+//
+//
+// of the collection of "brush" modules, this one should deal with the static world/area mesh and bsp
+// 
+// a bit of a re-org might be overdue here.
+//
+
 
 #include <assert.h>
 #include <stdio.h>

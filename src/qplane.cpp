@@ -1,3 +1,9 @@
+//
+//  (c) Stan Melax 2007
+// part of that plane quantization trick that 
+// lets us avoid any numberical robustness issues 
+// when doing CSG boolean ops (geomod)
+//
 
 #include <stdlib.h> // for rand()
 #include "vecmath.h"

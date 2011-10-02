@@ -1,5 +1,10 @@
 
-
+//------------
+//  (c) Stan Melax 2006-2008
+// an object layer above the physics layer to provide all those 
+// hooks and interfaces with the rest of the libs.
+//
+//
 
 #include <float.h>
 #include "chuckable.h"
@@ -534,6 +539,17 @@ String chuckdelall(String s)
 	return rv;
 }
 EXPORTFUNC(chuckdelall);
+
+Chuckable* closest(const float3 &p)
+{
+	Chuckable *c=NULL;
+	for(int i=0;i<Chuckables.count;i++)
+	{
+		if(!c || magnitude(Chuckables[i]->position-p)<magnitude(c->position-p))
+			c=Chuckables[i];
+	}
+	return c;
+}
 
 
 

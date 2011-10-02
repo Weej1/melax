@@ -1,3 +1,10 @@
+//------------
+//  (c) Stan Melax 2006-2008
+// 
+// an object layer above the physics layer to provide all those 
+// hooks and interfaces with the rest of the libs.
+//
+//
 
 #ifndef SM_CHUCKABLE_H
 #define SM_CHUCKABLE_H

@@ -1,6 +1,10 @@
 //  
 //             Mesh 
 //  
+// by: s melax (c) 2004
+// note: needs some refactoring here
+//  
+//
 //    
 
 #ifndef SIMPLE_MESH_H

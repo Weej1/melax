@@ -1,4 +1,10 @@
-
+//  
+// Manipulators
+// by: s melax (c) 2003-2007
+// 
+// if you like to think of that model-view-controller then these things are the "controller" 
+// i.e. the UI shim that lets me pull, push, rotate, edit, or activate some sort of object in the scene
+//  
 
 #ifndef SM_MANIPULATOR_H
 #define SM_MANIPULATOR_H

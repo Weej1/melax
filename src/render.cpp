@@ -1,8 +1,10 @@
 //  
 //  Graphics/Rendering Engine
-// 
-// This module is graphics engine internal.  That means that
-// these routines have no knowledge of any game stuff, bsp, or brushes.
+//  (c) S Melax 2007
+//
+//  Yeah, This is getting old and needs some refactoring 
+//
+// This module is graphics engine internal.  
 //
 // Basically the game has to tell which things it wants to render
 // then the graphics engine determines things like

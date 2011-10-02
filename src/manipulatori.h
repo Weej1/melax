@@ -1,4 +1,10 @@
-
+//  
+// Manipulators
+// by: s melax (c) 2003-2007
+// 
+// This is another include that has more stuff in it for modules that want to derive 
+// manipulators reusing some common base classes
+//  
 
 #ifndef SM_MANIPULATOR_INTERNAL_H
 #define SM_MANIPULATOR_INTERNAL_H

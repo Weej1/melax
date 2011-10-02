@@ -1,3 +1,9 @@
+// 
+//
+//  Typical 3d vector math code.
+//  By S Melax 1998-2008
+// 
+//
 //
 
 #include "vecmath.h"

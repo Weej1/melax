@@ -2,6 +2,10 @@
 // this file was stolen from the d3d demo common library,
 // with some minor modificaitons here and there.
 //
+//  The design here is just wrong.  there shouldn't be a difference 
+//  between the font material and any other in regards to how they are treated by the rendering systems.
+// 
+//
 // File: D3DFont.h
 //
 // Desc: Texture-based font class

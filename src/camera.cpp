@@ -1,9 +1,11 @@
-//------------------------------------------
+//------------
+//  (c) Stan Melax 2006-2008
 //
-//   Pretty Basic Camera Implementation
+//    some elementary Camera Functionality
 //
+// The camera is assumed to use a regular
+// perspective projection.  
 //
-// 
 
 
 #include <assert.h>

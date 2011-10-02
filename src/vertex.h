@@ -1,5 +1,9 @@
+// 
 //
+//  Some 3d rendering code
+//  (c) S Melax 2007
 //
+//  Yeah, This is getting old and needs some refactoring 
 //
 // A model is a collection of meshes with an optional skeleton aka bone collection.
 // Each mesh is associated with a single material.  So something has to be split into 
