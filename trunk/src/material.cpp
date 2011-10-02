@@ -1,3 +1,8 @@
+//  
+// by: s melax (c) 2003-2007
+// note: this architecture needs a refresh here
+//  
+//
 //
 // The surface of a piece of geometry is typically assigned a material
 // that specifies how it is shaded.  This is encapsulated in the Material class.

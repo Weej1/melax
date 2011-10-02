@@ -1,4 +1,7 @@
 //
+//  (c) Stan Melax 2007
+//
+//
 // If you are building a new project and are getting link errors...
 // Dont forget to add the libraries:  d3d9.lib d3dx9.lib winmm.lib
 //
@@ -67,9 +70,12 @@ char *spinmode(const char*)
 EXPORTFUNC(spinmode);
 
 
-
+int crosshair_enable=1;
+EXPORTVAR(crosshair_enable);
 void crosshair()
 {
+	if(!crosshair_enable)
+		return;
 	extern float3 MouseVector;
 	float3 cp = camera.position+rotate(camera.orientation,PlaneLineIntersection(Plane(float3(0,0,1),camera.clipnear*1.1f),float3(0,0,0),MouseVector));
 	Line(cp - rotate(camera.orientation,float3( 0.01f,0.01f,0))*camera.clipnear, cp + rotate(camera.orientation,float3( 0.01f,0.01f,0))*camera.clipnear,float3(1,1,0));
@@ -117,7 +123,6 @@ EXPORTVAR(gamefile);
 int core =1;
 EXPORTVAR(core)
 
-static __declspec(align(32)) float testp[24];
 
 String loadmats(String)
 {
@@ -243,6 +248,7 @@ int WINAPI WinMain( HINSTANCE hInst, HINSTANCE, LPSTR arg, int )
 
 		extern void JointUpdate();
 		JointUpdate();
+
 
 		extern void PhysicsUpdate() ;
 		PhysicsUpdate();

@@ -1,4 +1,7 @@
 //------------
+//  (c) Stan Melax 2006-2008
+// part of a collection of geometry code.
+// 
 //
 
 #include <stdio.h>

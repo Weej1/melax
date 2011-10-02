@@ -1,5 +1,7 @@
+//------------
+//  (c) Stan Melax 2006-2008
 //
-//    Standard Camera Functionality
+//    some elementary Camera Functionality
 //
 // The camera is assumed to use a regular
 // perspective projection.  

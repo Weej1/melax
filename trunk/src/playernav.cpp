@@ -1,3 +1,10 @@
+//
+//  (c) Stan Melax 2007
+//  just a very basic player controller.   
+//  used by typical wasd & mouselook interface. 
+//  checks collision cylinder against an environment.
+//  note:  player is not a rigidbody
+//
 
 
 #include "object.h"
@@ -33,22 +40,22 @@ int HitCheckCylinder(float r,float h,Brush *brush,const float3 &_v0)
 
 
 
-class Player: public Entity
+class Player : public Pose //: public Entity
 {
   public:
-	float3     position;
+	//float3     position;
+	//Quaternion orientation;
 	float3     positionnew;
 	float3     positionold;
-	Quaternion orientation;
 	float3     velocity;
 	float      height;
 	float      radius;
 	float      headtilt;
 	float3     groundnormal;
 
-	Player():Entity("player"),height(1.75f),radius(0.3f)
+	Player():height(1.75f),radius(0.3f)//,Entity("player")
 	{
-		LEXPOSEOBJECT(Player,"bob");
+		LEXPOSEOBJECT(Player,"player");
 	}
 	void wasd_fly();
 	void spinmove(const float3 &cr);

@@ -1,4 +1,8 @@
-
+//
+//  (c) Stan Melax 2004
+//
+// simple local light objects in the scene
+//
 
 #ifndef SM_LIGHT_H
 #define SM_LIGHT_H

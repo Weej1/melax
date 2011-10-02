@@ -1,4 +1,11 @@
-
+//
+//      BSP
+//  (c) Stan Melax 1998-2007
+//  see file bsp.h 
+//
+// this module provides csg boolean operation (geomod) support
+//
+//
 
 #include <stdio.h>
 #include <stdlib.h>

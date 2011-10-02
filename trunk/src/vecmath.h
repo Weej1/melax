@@ -1,5 +1,8 @@
 // 
 //
+//  Typical 3d vector math code.
+//  By S Melax 1998-2008
+// 
 //
 
 #ifndef SM_VEC_MATH_H

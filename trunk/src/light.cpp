@@ -1,6 +1,9 @@
 //
 //    light
 //
+//
+//  (c) Stan Melax 2004
+//
 //  This cpp module encapsulates our light objects and the manipulators for them.
 //  
 //

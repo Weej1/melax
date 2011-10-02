@@ -1,3 +1,10 @@
+//
+//  (c) Stan Melax 2004
+//
+// a simple subdivision surface implementation.
+// based on rectangular meshes.
+// used for a cloth demo.
+//
 
 #include "vertex.h"
 #include "mesh.h"

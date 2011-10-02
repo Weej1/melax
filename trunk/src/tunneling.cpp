@@ -1,3 +1,7 @@
+//
+//  (c) Stan Melax 2007
+// used for an example of CSG boolean ops (geomod)
+//
 
 #include <assert.h>
 #include "camera.h"
